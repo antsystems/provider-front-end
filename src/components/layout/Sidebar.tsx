@@ -1,0 +1,502 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import {
+  LayoutDashboard,
+  FileText,
+  UserCheck,
+  Building,
+  CreditCard,
+  BarChart3,
+  Settings,
+  ChevronDown,
+  ChevronRight,
+  Stethoscope,
+  Bed,
+  Receipt,
+  Users,
+  Shield,
+  LucideIcon,
+  Bell,
+  User,
+  LogOut,
+  Menu,
+  HandCoins
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
+
+interface SidebarProps {
+  isOpen: boolean
+  isCollapsed: boolean
+  onClose: () => void
+  onToggle: () => void
+  isMobile: boolean
+}
+
+interface NavItem {
+  title: string
+  href: string
+  icon: LucideIcon
+  badge?: string
+  children?: NavItem[]
+}
+
+const navigationItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    title: 'Doctors',
+    href: '/doctors',
+    icon: Stethoscope,
+  },
+  {
+    title: 'Staff',
+    href: '/staff',
+    icon: Users,
+  },
+  {
+    title: 'Hospital Users',
+    href: '/users',
+    icon: UserCheck,
+  },
+  {
+    title: 'Payer Affiliations',
+    href: '/payer-affiliations',
+    icon: HandCoins,
+  },
+  {
+    title: 'Profile',
+    href: '/profile',
+    icon: User,
+  },
+]
+
+export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobile }: SidebarProps) {
+  const pathname = usePathname()
+  const router = useRouter()
+  const { user, logout } = useAuth()
+  const [expandedItems, setExpandedItems] = useState<string[]>([])
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  const toggleExpanded = (title: string) => {
+    if (!isCollapsed) {
+      setExpandedItems(prev =>
+        prev.includes(title)
+          ? prev.filter(item => item !== title)
+          : [...prev, title]
+      )
+    }
+  }
+
+  const isActive = (href: string) => {
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
+  const handleSignOut = () => {
+    logout()
+    router.push('/login')
+  }
+
+  const NavItemComponent = ({ item, level = 0 }: { item: NavItem; level?: number }) => {
+    const hasChildren = item.children && item.children.length > 0
+    const isExpanded = expandedItems.includes(item.title)
+    const active = isActive(item.href)
+
+    if (hasChildren) {
+      return (
+        <div className="mb-1">
+          {isCollapsed ? (
+            // In collapsed mode, parent items navigate directly
+            <Button
+              variant={active ? "default" : "ghost"}
+              size="sm"
+              asChild
+              className={cn(
+                "w-full h-12 hover-lift rounded-xl transition-all duration-200 justify-center px-3"
+              )}
+              title={item.title}
+            >
+              <Link href={item.href} onClick={onClose}>
+                <item.icon size={18} />
+              </Link>
+            </Button>
+          ) : (
+            // In expanded mode, parent items show/hide children
+            <>
+              <Button
+                variant={active ? "default" : "ghost"}
+                size="sm"
+                onClick={() => toggleExpanded(item.title)}
+                className={cn(
+                  "w-full h-12 hover-lift rounded-xl transition-all duration-200 justify-between px-4",
+                  level > 0 && "ml-4"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon size={18} />
+                  <span className="font-medium">{item.title}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-auto">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </div>
+                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </Button>
+
+              {isExpanded && (
+                <div className="mt-1 space-y-1">
+                  {item.children?.map((child) => (
+                    <NavItemComponent key={child.title} item={child} level={level + 1} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <Button
+        variant={active ? "default" : "ghost"}
+        size="sm"
+        asChild
+        className={cn(
+          "w-full h-12 mb-1 hover-lift rounded-xl transition-all duration-200",
+          isCollapsed
+            ? "justify-center px-3"
+            : "justify-start px-4",
+          level > 0 && !isCollapsed && "ml-4"
+        )}
+        title={isCollapsed ? item.title : undefined}
+      >
+        <Link href={item.href} onClick={onClose}>
+          <item.icon size={18} />
+          {!isCollapsed && (
+            <>
+              <span className="font-medium">{item.title}</span>
+              {item.badge && (
+                <Badge variant="secondary" className="ml-auto">
+                  {item.badge}
+                </Badge>
+              )}
+            </>
+          )}
+        </Link>
+      </Button>
+    )
+  }
+
+  return (
+    <>
+      {/* Mobile Floating Toggle Button - Only show when sidebar is closed */}
+      {!isOpen && isMobile && isMounted && (
+        <Button
+          variant="default"
+          size="icon"
+          onClick={onToggle}
+          className="fixed top-4 left-4 z-50 lg:hidden h-12 w-12 rounded-full shadow-lg hover:scale-105 transition-all duration-200"
+          title="Open sidebar"
+        >
+          <Menu size={20} />
+        </Button>
+      )}
+
+      {/* Mobile Overlay */}
+      {isOpen && isMobile && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed top-0 left-0 z-40 h-screen glass-card border-r-0",
+          "transform transition-all duration-300 ease-in-out",
+          // Ensure consistent hydration by using safe defaults
+          !isMounted && "translate-x-0 w-64", // Default state during SSR
+          // Mobile behavior
+          isMounted && isMobile && (isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"),
+          // Desktop behavior
+          isMounted && !isMobile && "translate-x-0",
+          isMounted && !isMobile && (isCollapsed ? "w-16" : "w-64")
+        )}
+      >
+        <div className="flex flex-col h-full">
+          {/* Logo Header with Integrated Toggle */}
+          <div className={cn(
+            "flex items-center justify-between border-b border-border/50 transition-all duration-300 group",
+            !isMounted && "px-4 py-4", // Default state during SSR
+            isMounted && (isCollapsed ? "px-3 py-3 flex-col gap-3" : "px-4 py-4")
+          )}>
+            {!isMounted || !isCollapsed ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <Image
+                    src="/assets/logo.png"
+                    alt="MedVerve Logo"
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                    priority
+                  />
+                  <div>
+                    <h1 className="text-lg font-bold">
+                      <span className="text-primary">med</span>
+                      <span className="text-accent">verve</span>
+                    </h1>
+                    <p className="text-xs text-muted-foreground">Provider Portal</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggle}
+                  className="hover:bg-accent/80 transition-all duration-200 opacity-60 hover:opacity-100 h-8 w-8"
+                  title="Collapse sidebar"
+                >
+                  <Menu size={16} />
+                </Button>
+              </>
+            ) : isMounted ? (
+              <>
+                <Image
+                  src="/assets/logo.png"
+                  alt="MedVerve Logo"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                  priority
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggle}
+                  className="hover:bg-accent/80 transition-all duration-200 h-8 w-8"
+                  title="Expand sidebar"
+                >
+                  <Menu size={14} />
+                </Button>
+              </>
+            ) : null}
+          </div>
+
+          {/* Navigation */}
+          <nav className={cn(
+            "flex-1 py-4 overflow-y-auto scrollbar-hide scroll-smooth scrollable-nav scroll-boundary",
+            !isMounted && "px-4", // Default state during SSR
+            isMounted && (isCollapsed ? "px-2" : "px-4")
+          )}>
+            <div className="space-y-2">
+              {navigationItems.map((item) => (
+                <NavItemComponent key={item.title} item={item} />
+              ))}
+            </div>
+          </nav>
+
+          {/* User Section */}
+          <div className={cn(
+            "border-t border-border/50 transition-all duration-300",
+            !isMounted && "px-4 py-4", // Default state during SSR
+            isMounted && (isCollapsed ? "px-2 py-3" : "px-4 py-4")
+          )}>
+            {!isMounted || !isCollapsed ? (
+              <div className="space-y-3">
+                {/* Notifications */}
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start h-10 px-3"
+                  >
+                    <Bell className="w-4 h-4 mr-3" />
+                    Notifications
+                    <Badge
+                      variant="destructive"
+                      className="ml-auto h-5 w-5 p-0 flex items-center justify-center text-xs"
+                    >
+                      3
+                    </Badge>
+                  </Button>
+                </div>
+
+                <Separator />
+
+                {/* User Profile */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-start h-12 px-3">
+                      <Avatar className="h-8 w-8 mr-3">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                          {user?.employee_name
+                            ? user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                            : user?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                            || user?.email?.slice(0, 2).toUpperCase()
+                            || 'U'
+                          }
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col items-start text-left">
+                        <span className="text-sm font-medium">
+                          {user?.employee_name || user?.displayName || user?.email?.split('@')[0] || 'User'}
+                        </span>
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {user?.role?.toUpperCase() || 'User'}
+                        </span>
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="flex items-center gap-2 p-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {user?.employee_name
+                            ? user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                            : user?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                            || user?.email?.slice(0, 2).toUpperCase()
+                            || 'U'
+                          }
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">
+                          {user?.employee_name || user?.displayName || user?.email?.split('@')[0] || 'User'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {user?.email || user?.phone || 'No contact info'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <Link href="/profile" onClick={onClose}>
+                      <DropdownMenuItem>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile Settings</span>
+                      </DropdownMenuItem>
+                    </Link>
+
+                    <DropdownMenuItem>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Account Settings</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign Out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : isMounted ? (
+              <div className="space-y-2">
+                {/* Collapsed Notifications */}
+                <div className="relative flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 relative"
+                    title="Notifications"
+                  >
+                    <Bell className="w-5 h-5" />
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs"
+                    >
+                      3
+                    </Badge>
+                  </Button>
+                </div>
+
+                {/* Collapsed User Profile */}
+                <div className="flex justify-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-10 w-10" title="Profile">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src="/avatars/doctor.jpg" alt="Dr. Smith" />
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                            DS
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end" className="w-56">
+                      <div className="flex items-center gap-2 p-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            DS
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium">Dr. Smith</p>
+                          <p className="text-xs text-muted-foreground">smith@medverve.com</p>
+                        </div>
+                      </div>
+
+                      <DropdownMenuSeparator />
+
+                      <Link href="/profile" onClick={onClose}>
+                        <DropdownMenuItem>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Profile Settings</span>
+                        </DropdownMenuItem>
+                      </Link>
+
+                      <DropdownMenuItem>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Account Settings</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={handleSignOut}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Sign Out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </aside>
+    </>
+  )
+}
