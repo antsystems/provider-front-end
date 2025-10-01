@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   BulkAffiliatePayersRequest,
@@ -45,7 +46,8 @@ import {
   XCircle,
   Users,
   Filter,
-  Loader2
+  Loader2,
+  Search
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -71,6 +73,7 @@ export default function BulkAffiliatePayersDialog({
   const [availablePayers, setAvailablePayers] = useState<AvailablePayer[]>([])
   const [filteredPayers, setFilteredPayers] = useState<AvailablePayer[]>([])
   const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const [results, setResults] = useState<BulkAffiliatePayersResponse | null>(null)
 
   const form = useForm<FormData>({
@@ -87,7 +90,7 @@ export default function BulkAffiliatePayersDialog({
     try {
       setIsLoadingPayers(true)
       const response = await payerAffiliationsApi.getAvailablePayers()
-      setAvailablePayers(response.payers.filter(p => p.status === 'active'))
+      setAvailablePayers(response.available_payers.filter(p => p.status === 'active'))
     } catch (error) {
       console.error('Error fetching available payers:', error)
       toast.error('Failed to load available payers')
@@ -102,14 +105,27 @@ export default function BulkAffiliatePayersDialog({
     }
   }, [open])
 
-  // Filter payers by type
+  // Filter payers by type and search query
   useEffect(() => {
-    if (typeFilter === 'all') {
-      setFilteredPayers(availablePayers)
-    } else {
-      setFilteredPayers(availablePayers.filter(payer => payer.type === typeFilter))
+    let filtered = availablePayers
+
+    // Filter by type
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(payer => payer.type === typeFilter)
     }
-  }, [availablePayers, typeFilter])
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(payer =>
+        payer.name.toLowerCase().includes(query) ||
+        payer.code.toLowerCase().includes(query) ||
+        payer.type.toLowerCase().includes(query)
+      )
+    }
+
+    setFilteredPayers(filtered)
+  }, [availablePayers, typeFilter, searchQuery])
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -165,12 +181,14 @@ export default function BulkAffiliatePayersDialog({
     form.reset()
     setResults(null)
     setTypeFilter('all')
+    setSearchQuery('')
     onOpenChange(false)
   }
 
   const handleContinue = () => {
     setResults(null)
     form.reset()
+    setSearchQuery('')
   }
 
   const getPayerTypeBadge = (payerType: string) => {
@@ -277,28 +295,42 @@ export default function BulkAffiliatePayersDialog({
                   </AlertDescription>
                 </Alert>
 
-                {/* Type Filter */}
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    <label className="text-sm font-medium">Filter by Type:</label>
+                {/* Search and Filter */}
+                <div className="space-y-3">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by name, code, or type..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                  <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="All types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      {uniquePayerTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Badge variant="secondary">
-                    {filteredPayers.length} payers
-                  </Badge>
+
+                  {/* Type Filter */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4" />
+                      <label className="text-sm font-medium">Filter by Type:</label>
+                    </div>
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {uniquePayerTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Badge variant="secondary">
+                      {filteredPayers.length} payers
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Payer Selection */}
@@ -312,13 +344,8 @@ export default function BulkAffiliatePayersDialog({
                         {filteredPayers.length > 0 && (
                           <div className="flex items-center gap-2">
                             <Checkbox
-                              checked={isAllSelected}
+                              checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
                               onCheckedChange={handleSelectAll}
-                              ref={(ref) => {
-                                if (ref) {
-                                  ref.indeterminate = isSomeSelected && !isAllSelected
-                                }
-                              }}
                             />
                             <label className="text-sm">Select All ({filteredPayers.length})</label>
                           </div>

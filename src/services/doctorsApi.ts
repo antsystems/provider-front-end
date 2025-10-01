@@ -1,8 +1,9 @@
 import { DoctorsResponse, DoctorsApiFilters, DoctorResponse, CreateDoctorRequest, UpdateDoctorRequest, DeleteDoctorResponse, SpecialtiesResponse, DepartmentsResponse } from '@/types/doctors';
 import authService from '@/services/auth';
+import { getCached, setCached } from '@/services/cache';
 
 class DoctorsApiService {
-  private baseUrl = 'https://provider-3.onrender.com/api';
+  private baseUrl = 'https://provider-4.onrender.com/api';
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();
@@ -150,6 +151,10 @@ class DoctorsApiService {
   }
 
   async getAvailableSpecialties(): Promise<SpecialtiesResponse> {
+    const cacheKey = 'doctors:available-specialties'
+    const cached = getCached<SpecialtiesResponse>(cacheKey)
+    if (cached) return cached
+
     const url = `${this.baseUrl}/doctors/available-specialties`;
 
     try {
@@ -163,8 +168,20 @@ class DoctorsApiService {
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data: SpecialtiesResponse = await response.json();
-      return data;
+      const data: any = await response.json();
+
+      // Normalize response: backend may return specialty_names or specialties
+      const specialty_names: string[] = data.specialty_names ?? data.specialties ?? [];
+      const count: number = typeof data.count === 'number' ? data.count : specialty_names.length;
+
+      const result: SpecialtiesResponse = {
+        message: data.message ?? 'Available specialty names retrieved successfully',
+        specialty_names,
+        count,
+      };
+
+      setCached(cacheKey, result)
+      return result;
     } catch (error) {
       console.error('Failed to fetch available specialties:', error);
       throw error;
@@ -172,6 +189,10 @@ class DoctorsApiService {
   }
 
   async getAvailableDepartments(): Promise<DepartmentsResponse> {
+    const cacheKey = 'doctors:available-departments'
+    const cached = getCached<DepartmentsResponse>(cacheKey)
+    if (cached) return cached
+
     const url = `${this.baseUrl}/doctors/available-departments`;
 
     try {
@@ -185,8 +206,20 @@ class DoctorsApiService {
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data: DepartmentsResponse = await response.json();
-      return data;
+      const data: any = await response.json();
+
+      // Normalize response: backend may return department_names or departments
+      const department_names: string[] = data.department_names ?? data.departments ?? [];
+      const count: number = typeof data.count === 'number' ? data.count : department_names.length;
+
+      const result = {
+        message: data.message ?? 'Available department names retrieved successfully',
+        department_names,
+        count,
+      };
+
+      setCached(cacheKey, result)
+      return result;
     } catch (error) {
       console.error('Failed to fetch available departments:', error);
       throw error;

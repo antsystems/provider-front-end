@@ -23,17 +23,24 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CreatePayerAffiliationRequest, AvailablePayer } from '@/types/payerAffiliations'
 import { payerAffiliationsApi } from '@/services/payerAffiliationsApi'
-import { Building, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react'
+import { Building, AlertTriangle, Loader2, ChevronsUpDown, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 const formSchema = z.object({
   payer_id: z.string().min(1, 'Please select a payer'),
@@ -55,12 +62,7 @@ export default function AddPayerAffiliationDialog({
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingPayers, setIsLoadingPayers] = useState(false)
   const [availablePayers, setAvailablePayers] = useState<AvailablePayer[]>([])
-  const [createdAffiliation, setCreatedAffiliation] = useState<{
-    id: string
-    payer_name: string
-    payer_type: string
-    payer_code: string
-  } | null>(null)
+  const [openPayer, setOpenPayer] = useState(false)
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -74,7 +76,8 @@ export default function AddPayerAffiliationDialog({
     try {
       setIsLoadingPayers(true)
       const response = await payerAffiliationsApi.getAvailablePayers()
-      setAvailablePayers(response.payers.filter(p => p.status === 'active'))
+      const payers = response?.available_payers || []
+      setAvailablePayers(payers.filter(p => p.status === 'active'))
     } catch (error) {
       console.error('Error fetching available payers:', error)
       toast.error('Failed to load available payers')
@@ -84,14 +87,13 @@ export default function AddPayerAffiliationDialog({
   }
 
   useEffect(() => {
-    if (open) {
+    if (open && availablePayers.length === 0) {
       fetchAvailablePayers()
     }
   }, [open])
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
-    setCreatedAffiliation(null)
 
     try {
       const selectedPayer = availablePayers.find(p => p.id === data.payer_id)
@@ -105,12 +107,17 @@ export default function AddPayerAffiliationDialog({
 
       const response = await payerAffiliationsApi.createPayerAffiliation(affiliationData)
 
-      setCreatedAffiliation(response.affiliation)
-      toast.success(`Payer affiliation with "${response.affiliation.payer_name}" created successfully`)
+      if (response?.affiliation) {
+        toast.success(`Payer affiliation with "${response.affiliation.payer_name}" created successfully`)
+      } else {
+        // Backend returned success but no affiliation data
+        toast.success(`Payer affiliation created successfully`)
+      }
 
-      // Reset form after successful creation
+      // Reset form and close dialog after successful creation
       form.reset()
       onSuccess?.()
+      handleClose()
 
     } catch (error) {
       console.error('Error creating payer affiliation:', error)
@@ -122,13 +129,7 @@ export default function AddPayerAffiliationDialog({
 
   const handleClose = () => {
     form.reset()
-    setCreatedAffiliation(null)
     onOpenChange(false)
-  }
-
-  const handleContinue = () => {
-    setCreatedAffiliation(null)
-    form.reset()
   }
 
   return (
@@ -144,121 +145,104 @@ export default function AddPayerAffiliationDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {createdAffiliation ? (
-          <div className="space-y-4">
-            <Alert>
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Success!</strong> Payer affiliation created successfully.
-              </AlertDescription>
-            </Alert>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-4">
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Note:</strong> Only Hospital Admins can create payer affiliations.
+                  The payer must exist in the system before creating an affiliation.
+                </AlertDescription>
+              </Alert>
 
-            <div className="space-y-3 p-4 border rounded-lg bg-green-50/50">
-              <h4 className="font-medium text-green-800">Affiliation Details:</h4>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Affiliation ID:</span>
-                  <div className="font-mono font-medium">{createdAffiliation.id}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Payer Name:</span>
-                  <div className="font-medium">{createdAffiliation.payer_name}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Payer Type:</span>
-                  <div className="font-medium">{createdAffiliation.payer_type}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Payer Code:</span>
-                  <div className="font-mono font-medium">{createdAffiliation.payer_code}</div>
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={handleContinue}>
-                Create Another
-              </Button>
-              <Button onClick={handleClose}>
-                Done
-              </Button>
-            </DialogFooter>
-          </div>
-        ) : (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-4">
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Note:</strong> Only Hospital Admins can create payer affiliations.
-                    The payer must exist in the system before creating an affiliation.
-                  </AlertDescription>
-                </Alert>
-
-                <FormField
-                  control={form.control}
-                  name="payer_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Select Payer *</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={isLoading || isLoadingPayers}
-                      >
+              <FormField
+                control={form.control}
+                name="payer_id"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Select Payer *</FormLabel>
+                    <Popover open={openPayer} onOpenChange={setOpenPayer}>
+                      <PopoverTrigger asChild>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={
-                              isLoadingPayers
-                                ? "Loading payers..."
-                                : "Select a payer to affiliate with"
-                            } />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {isLoadingPayers ? (
-                            <SelectItem value="" disabled>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openPayer}
+                            disabled={isLoading || isLoadingPayers}
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {isLoadingPayers ? (
                               <div className="flex items-center gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin" />
                                 Loading payers...
                               </div>
-                            </SelectItem>
-                          ) : availablePayers.length === 0 ? (
-                            <SelectItem value="" disabled>
-                              No payers available
-                            </SelectItem>
-                          ) : (
-                            availablePayers.map((payer) => (
-                              <SelectItem key={payer.id} value={payer.id}>
-                                <div>
-                                  <div className="font-medium">{payer.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {payer.type} • Code: {payer.code}
+                            ) : field.value ? (
+                              availablePayers.find((p) => p.id === field.value)?.name || "Select payer"
+                            ) : (
+                              "Select a payer to affiliate with"
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[450px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search payer..." />
+                          <CommandList>
+                            <CommandEmpty>
+                              {availablePayers.length === 0 ? "No payers available." : "No payer found."}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {availablePayers.map((payer) => (
+                                <CommandItem
+                                  value={payer.name}
+                                  key={payer.id}
+                                  onSelect={() => {
+                                    form.setValue("payer_id", payer.id)
+                                    setOpenPayer(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      payer.id === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  <div>
+                                    <div className="font-medium">{payer.name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {payer.type} • Code: {payer.code}
+                                    </div>
                                   </div>
-                                </div>
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Creating...' : 'Create Affiliation'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        )}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Creating...' : 'Create Affiliation'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

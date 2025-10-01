@@ -85,16 +85,32 @@ export interface BulkAffiliatePayersResponse {
 // Available payers interfaces
 export interface AvailablePayer {
   id: string;
+  auto_id: string;
+  mvid: string;
   name: string;
   type: string;
   code: string;
   status: 'active' | 'inactive';
+  address: string;
+  contact_email: string;
+  contact_person: string;
+  contact_person_number: string;
+  contact_phone: string;
+  country: string;
+  created_at: string;
+  district: string;
+  location: string;
+  login_url: string;
+  ownership: string;
+  pin_code: string;
+  regd_number: string;
+  region: string;
+  state: string;
 }
 
 export interface AvailablePayersResponse {
-  message: string;
-  payers: AvailablePayer[];
-  count: number;
+  affiliated_payers: string[];
+  available_payers: AvailablePayer[];
 }
 
 export interface PayersByTypeResponse {
@@ -117,7 +133,7 @@ export const PAYER_AFFILIATION_STATUS_OPTIONS = [
 // Common payer types
 export const PAYER_TYPES = [
   'TPA',
-  'Insurance',
+  'INSURANCE COMPANY',
   'Government',
   'Corporate',
   'Other'

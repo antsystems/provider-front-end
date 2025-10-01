@@ -25,7 +25,10 @@ import {
   User,
   LogOut,
   Menu,
-  HandCoins
+  HandCoins,
+  Building2,
+  DollarSign,
+  Percent
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -73,6 +76,11 @@ const navigationItems: NavItem[] = [
     icon: Users,
   },
   {
+    title: 'Departments',
+    href: '/departments',
+    icon: Building2,
+  },
+  {
     title: 'Hospital Users',
     href: '/users',
     icon: UserCheck,
@@ -81,6 +89,16 @@ const navigationItems: NavItem[] = [
     title: 'Payer Affiliations',
     href: '/payer-affiliations',
     icon: HandCoins,
+  },
+  {
+    title: 'Tariffs',
+    href: '/tariffs',
+    icon: DollarSign,
+  },
+  {
+    title: 'TDS Mapping',
+    href: '/tds-mapping',
+    icon: Percent,
   },
   {
     title: 'Profile',

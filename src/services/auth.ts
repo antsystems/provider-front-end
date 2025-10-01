@@ -14,7 +14,7 @@ import type {
 
 class AuthService {
   private api: AxiosInstance;
-  private baseURL = 'https://provider-3.onrender.com/api';
+  private baseURL = 'https://provider-4.onrender.com/api';
 
   constructor() {
     this.api = axios.create({

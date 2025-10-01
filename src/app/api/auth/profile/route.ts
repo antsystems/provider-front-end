@@ -46,7 +46,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProfileRes
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Make request to external API
-    const response = await fetch('https://provider-3.onrender.com/api/auth/profile', {
+    const response = await fetch('https://provider-4.onrender.com/api/auth/profile', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

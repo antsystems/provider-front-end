@@ -21,18 +21,25 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CreateDoctorRequest } from '@/types/doctors'
 import { doctorsApi } from '@/services/doctorsApi'
-import { Stethoscope, Mail, Phone, GraduationCap, Clock, DollarSign, Users, Building } from 'lucide-react'
+import { Stethoscope, Mail, Phone, GraduationCap, Clock, DollarSign, Users, Building, ChevronsUpDown, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 const createDoctorSchema = z.object({
   doctor_name: z.string().min(2, 'Doctor name must be at least 2 characters'),
@@ -63,6 +70,8 @@ export default function AddDoctorDialog({
   const [specialties, setSpecialties] = useState<string[]>([])
   const [departments, setDepartments] = useState<string[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(false)
+  const [openSpecialty, setOpenSpecialty] = useState(false)
+  const [openDepartment, setOpenDepartment] = useState(false)
 
   const form = useForm<CreateDoctorFormValues>({
     resolver: zodResolver(createDoctorSchema),
@@ -90,8 +99,14 @@ export default function AddDoctorDialog({
           doctorsApi.getAvailableDepartments()
         ])
 
-        setSpecialties(specialtiesResponse.specialty_names)
-        setDepartments(departmentsResponse.department_names)
+    // Normalize and deduplicate specialties and departments
+    const specialtiesList: string[] = specialtiesResponse.specialty_names ?? []
+    const dedupedSpecialties = Array.from(new Set(specialtiesList.map(s => (s || '').trim()).filter(Boolean)))
+    setSpecialties(dedupedSpecialties)
+
+    const depList: string[] = departmentsResponse.department_names ?? []
+    const dedupedDepartments = Array.from(new Set(depList.map(d => (d || '').trim()).filter(Boolean)))
+    setDepartments(dedupedDepartments)
       } catch (error) {
         console.error('Error fetching options:', error)
         toast.error('Failed to load specialties and departments')
@@ -224,22 +239,57 @@ export default function AddDoctorDialog({
                   control={form.control}
                   name="specialty_name"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col">
                       <FormLabel>Specialty *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingOptions}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={isLoadingOptions ? "Loading..." : "Select a specialty"} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {specialties?.map((specialty) => (
-                            <SelectItem key={specialty} value={specialty}>
-                              {specialty}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={openSpecialty} onOpenChange={setOpenSpecialty}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openSpecialty}
+                              disabled={isLoadingOptions}
+                              className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value || (isLoadingOptions ? "Loading..." : "Select specialty")}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0">
+                          <Command>
+                            <CommandInput placeholder="Search specialty..." />
+                            <CommandList>
+                              <CommandEmpty>No specialty found.</CommandEmpty>
+                              <CommandGroup>
+                                {specialties.map((specialty) => (
+                                  <CommandItem
+                                    value={specialty}
+                                    key={specialty}
+                                    onSelect={() => {
+                                      form.setValue("specialty_name", specialty)
+                                      setOpenSpecialty(false)
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        specialty === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {specialty}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -249,22 +299,57 @@ export default function AddDoctorDialog({
                   control={form.control}
                   name="department_name"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col">
                       <FormLabel>Department *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingOptions}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={isLoadingOptions ? "Loading..." : "Select a department"} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {departments?.map((department) => (
-                            <SelectItem key={department} value={department}>
-                              {department}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openDepartment}
+                              disabled={isLoadingOptions}
+                              className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value || (isLoadingOptions ? "Loading..." : "Select department")}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0">
+                          <Command>
+                            <CommandInput placeholder="Search department..." />
+                            <CommandList>
+                              <CommandEmpty>No department found.</CommandEmpty>
+                              <CommandGroup>
+                                {departments.map((department) => (
+                                  <CommandItem
+                                    value={department}
+                                    key={department}
+                                    onSelect={() => {
+                                      form.setValue("department_name", department)
+                                      setOpenDepartment(false)
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        department === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {department}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}

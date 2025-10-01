@@ -1,3 +1,5 @@
+'use client';
+
 import { BarChart3, Users, FileText, DollarSign, Clock, CheckCircle, XCircle, Download, Plus, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -6,39 +8,56 @@ import { Badge } from '@/components/ui/badge'
 import { AnimatedStatCard } from '@/components/dashboard/AnimatedStatCard'
 import ChartCard from '@/components/ChartCard'
 import DashboardCharts from '@/components/DashboardCharts'
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useEffect, useState } from 'react'
+import { hospitalSummaryApi } from '@/services/hospitalSummaryApi'
 
 export default function Dashboard() {
-  const stats = useMemo(() => [
-    {
-      title: 'Total Providers',
-      value: '156',
-      change: '+3%',
-      changeType: 'positive' as const,
-      icon: Users,
-    },
-    {
-      title: 'Active Facilities',
-      value: '47',
-      change: '+8%',
-      changeType: 'positive' as const,
-      icon: FileText,
-    },
-    {
-      title: 'Network Value',
-      value: '$2.4M',
-      change: '+12%',
-      changeType: 'positive' as const,
-      icon: DollarSign,
-    },
-    {
-      title: 'Response Time',
-      value: '1.2 hrs',
-      change: '-25%',
-      changeType: 'positive' as const,
-      icon: Clock,
-    },
-  ], [])
+  // State for hospital summary
+  const [summary, setSummary] = useState<any | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    hospitalSummaryApi
+      .getHospitalSummary()
+      .then((res) => {
+        if (!mounted) return
+        if (res && res.summary) {
+          setSummary(res.summary)
+        } else {
+          setError('Invalid response from server')
+        }
+      })
+      .catch((err: any) => {
+        if (!mounted) return
+        setError(err?.message || 'Failed to load hospital summary')
+      })
+      .finally(() => {
+        if (!mounted) return
+        setLoading(false)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const stats = useMemo(() => {
+    // Build a comprehensive list of items to display on the overview
+    const s = summary ?? {}
+
+    return [
+      { title: 'Total Departments', value: String(s.total_departments ?? '-'), icon: FileText, change: '', changeType: 'positive' as const },
+      { title: 'Total Doctors', value: String(s.total_doctors ?? '-'), icon: Users, change: '', changeType: 'positive' as const },
+      { title: 'Total Hospital Users', value: String(s.total_hospital_users ?? '-'), icon: Users, change: '', changeType: 'positive' as const },
+      { title: 'Total Payer Affiliations', value: String(s.total_payer_affiliations ?? '-'), icon: BarChart3, change: '', changeType: 'positive' as const },
+      { title: 'Total Staff', value: String(s.total_staff ?? '-'), icon: Users, change: '', changeType: 'positive' as const },
+      { title: 'Total Tariffs', value: String(s.total_tariffs ?? '-'), icon: DollarSign, change: '', changeType: 'positive' as const },
+      { title: 'Total TDS Mappings', value: String(s.total_tds_mappings ?? '-'), icon: BarChart3, change: '', changeType: 'positive' as const },
+    ]
+  }, [summary])
 
   const recentActivities = useMemo(() => [
     {
@@ -102,9 +121,14 @@ export default function Dashboard() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Hospital Overview</h1>
           <p className="text-muted-foreground text-lg">
-            Welcome back! Here&apos;s what&apos;s happening with your provider network today.
+            {loading ? 'Loading hospital summary…' : error ? `Error: ${error}` : (
+              <>
+                {summary?.hospital_name ? `Overview for ${summary.hospital_name}` : `Overview for ${summary?.hospital_id ?? 'your hospital'}`}
+                <span className="block text-sm text-muted-foreground mt-1">Hospital ID: {summary?.hospital_id ?? '-'}</span>
+              </>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -122,7 +146,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8">
         {stats.map((stat, index) => (
           <AnimatedStatCard
             key={stat.title}

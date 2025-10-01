@@ -8,9 +8,10 @@ import {
   DepartmentsResponse
 } from '@/types/staff';
 import authService from '@/services/auth';
+import { getCached } from '@/services/cache';
 
 class StaffApiService {
-  private baseUrl = 'https://provider-3.onrender.com/api';
+  private baseUrl = 'https://provider-4.onrender.com/api';
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();
@@ -154,6 +155,16 @@ class StaffApiService {
 
   // Reuse departments from doctors API for consistency
   async getAvailableDepartments(): Promise<DepartmentsResponse> {
+    // Try to reuse doctors API cache if available
+    const cached = getCached<{ message: string; department_names: string[]; count: number }>('doctors:available-departments')
+    if (cached) {
+      return {
+        message: cached.message,
+        departments: cached.department_names || [],
+        count: cached.count,
+      }
+    }
+
     const url = `${this.baseUrl}/doctors/available-departments`;
 
     try {

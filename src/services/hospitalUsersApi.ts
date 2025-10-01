@@ -12,7 +12,7 @@ import {
 import authService from '@/services/auth';
 
 class HospitalUsersApiService {
-  private baseUrl = 'https://provider-3.onrender.com/api';
+  private baseUrl = 'https://provider-4.onrender.com/api';
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();

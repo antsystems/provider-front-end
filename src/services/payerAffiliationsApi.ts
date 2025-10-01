@@ -14,9 +14,10 @@ import {
   PayersApiFilters
 } from '@/types/payerAffiliations';
 import authService from '@/services/auth';
+import { getCached, setCached, clearCache } from '@/services/cache';
 
 class PayerAffiliationsApiService {
-  private baseUrl = 'https://provider-3.onrender.com/api';
+  private baseUrl = 'https://provider-4.onrender.com/api';
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();
@@ -84,6 +85,10 @@ class PayerAffiliationsApiService {
       }
 
       const data: CreatePayerAffiliationResponse = await response.json();
+
+      // Clear cache after successful creation
+      this.clearAvailablePayersCache();
+
       return data;
     } catch (error) {
       console.error('Failed to create payer affiliation:', error);
@@ -129,6 +134,10 @@ class PayerAffiliationsApiService {
       }
 
       const data: UpdatePayerAffiliationResponse = await response.json();
+
+      // Clear cache after successful update (in case status changed)
+      this.clearAvailablePayersCache();
+
       return data;
     } catch (error) {
       console.error('Failed to update payer affiliation:', error);
@@ -151,6 +160,10 @@ class PayerAffiliationsApiService {
       }
 
       const data: DeletePayerAffiliationResponse = await response.json();
+
+      // Clear cache after successful deletion
+      this.clearAvailablePayersCache();
+
       return data;
     } catch (error) {
       console.error('Failed to delete payer affiliation:', error);
@@ -174,6 +187,10 @@ class PayerAffiliationsApiService {
       }
 
       const data: BulkAffiliatePayersResponse = await response.json();
+
+      // Clear cache after successful bulk creation
+      this.clearAvailablePayersCache();
+
       return data;
     } catch (error) {
       console.error('Failed to bulk affiliate payers:', error);
@@ -181,7 +198,17 @@ class PayerAffiliationsApiService {
     }
   }
 
-  async getAvailablePayers(): Promise<AvailablePayersResponse> {
+  async getAvailablePayers(useCache = true): Promise<AvailablePayersResponse> {
+    const cacheKey = 'available-payers';
+
+    // Check cache first if enabled
+    if (useCache) {
+      const cached = getCached<AvailablePayersResponse>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
     const url = `${this.baseUrl}/available-payers`;
 
     try {
@@ -196,11 +223,22 @@ class PayerAffiliationsApiService {
       }
 
       const data: AvailablePayersResponse = await response.json();
+
+      // Cache for 10 minutes (600000 ms)
+      setCached(cacheKey, data, 1000 * 60 * 10);
+
       return data;
     } catch (error) {
       console.error('Failed to fetch available payers:', error);
       throw error;
     }
+  }
+
+  /**
+   * Clear the available payers cache
+   */
+  clearAvailablePayersCache(): void {
+    clearCache('available-payers');
   }
 
   async getPayersByType(filters: PayersApiFilters = {}): Promise<PayersByTypeResponse> {

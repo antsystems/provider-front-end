@@ -44,7 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<DoctorsRes
     if (status) queryParams.set('status', status);
 
     const queryString = queryParams.toString();
-    const apiUrl = `https://provider-3.onrender.com/api/doctors${queryString ? '?' + queryString : ''}`;
+    const apiUrl = `https://provider-4.onrender.com/api/doctors${queryString ? '?' + queryString : ''}`;
 
     // Make request to external API
     const response = await fetch(apiUrl, {

@@ -63,8 +63,14 @@ export default function DoctorsPage() {
         doctorsApi.getAvailableSpecialties(),
         doctorsApi.getAvailableDepartments()
       ])
-      setSpecialties(specialtiesResponse.specialty_names)
-      setDepartments(departmentsResponse.department_names)
+  // Normalize and deduplicate specialties and departments to avoid duplicate keys
+  const specialtiesList: string[] = specialtiesResponse.specialty_names ?? []
+  const dedupedSpecialties = Array.from(new Set(specialtiesList.map(s => (s || '').trim()).filter(Boolean)))
+  setSpecialties(dedupedSpecialties)
+
+  const depList: string[] = departmentsResponse.department_names ?? []
+  const dedupedDepartments = Array.from(new Set(depList.map(d => (d || '').trim()).filter(Boolean)))
+  setDepartments(dedupedDepartments)
     } catch (error) {
       console.error('Error fetching filter options:', error)
     } finally {
@@ -91,7 +97,7 @@ export default function DoctorsPage() {
     }
 
     // Apply status filter
-    if (filters.status && filters.status !== 'all') {
+    if (filters.status) {
       const isActive = filters.status === 'active' ? 1 : 0
       filtered = filtered.filter(doctor => doctor.IsActive === isActive)
     }
@@ -280,8 +286,8 @@ export default function DoctorsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Specialties</SelectItem>
-                {specialties.map((specialty) => (
-                  <SelectItem key={specialty} value={specialty}>
+                {specialties.map((specialty, i) => (
+                  <SelectItem key={`${specialty}-${i}`} value={specialty}>
                     {specialty}
                   </SelectItem>
                 ))}
@@ -298,8 +304,8 @@ export default function DoctorsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Departments</SelectItem>
-                {departments.map((department) => (
-                  <SelectItem key={department} value={department}>
+                {departments.map((department, i) => (
+                  <SelectItem key={`${department}-${i}`} value={department}>
                     {department}
                   </SelectItem>
                 ))}

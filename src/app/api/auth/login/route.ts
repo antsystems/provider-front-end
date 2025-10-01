@@ -52,7 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<LoginResp
     }
 
     // Make request to external API
-    const response = await fetch('https://provider-3.onrender.com/api/auth/login', {
+    const response = await fetch('https://provider-4.onrender.com/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
