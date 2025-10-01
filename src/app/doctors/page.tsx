@@ -43,7 +43,7 @@ export default function DoctorsPage() {
       setAllDoctors(response.doctors)
       setFilteredDoctors(response.doctors) // Initially show all
 
-      toast.success(`${response.count} doctors loaded successfully`)
+      toast.success(`${response.pagination.total_items} doctors loaded successfully`)
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch doctors'

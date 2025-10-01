@@ -45,12 +45,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             </span>
             <span className="text-sm font-semibold text-foreground">
               {entry.dataKey === 'amount'
-                ? new Intl.NumberFormat('en-US', {
+                ? new Intl.NumberFormat('en-IN', {
                     style: 'currency',
-                    currency: 'USD',
+                    currency: 'INR',
                     minimumFractionDigits: 0,
                   }).format(entry.value)
-                : new Intl.NumberFormat('en-US').format(entry.value)}
+                : new Intl.NumberFormat('en-IN').format(entry.value)}
             </span>
           </div>
         ))}
@@ -158,7 +158,7 @@ export default function SimpleLineChart() {
             fillOpacity={1}
             dot={<CustomDot />}
             activeDot={{ r: 6, stroke: 'hsl(var(--background))', strokeWidth: 2 }}
-            name="Claims Amount ($)"
+            name="Claims Amount (₹)"
           />
         </AreaChart>
       </ResponsiveContainer>

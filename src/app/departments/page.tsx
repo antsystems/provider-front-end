@@ -35,7 +35,7 @@ export default function DepartmentsPage() {
       setLoading(true)
       const response = await departmentsApi.getDepartments({
         page,
-        limit: 100,
+        limit: 50,
         include_inactive: includeInactive,
       })
       setDepartments(response.departments)
@@ -197,25 +197,6 @@ export default function DepartmentsPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Department Types</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                {Object.entries(stats.types)
-                  .filter(([_, count]) => count > 0)
-                  .slice(0, 2)
-                  .map(([type, count]) => (
-                    <div key={type} className="flex justify-between text-sm">
-                      <span>{type}</span>
-                      <span className="font-medium">{count}</span>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Filters */}

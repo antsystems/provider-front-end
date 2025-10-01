@@ -237,6 +237,9 @@ export default function TariffsPage() {
                           {tariff.document_name && (
                             <div className="text-xs text-muted-foreground">{tariff.document_name}</div>
                           )}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Created by: {tariff.created_by_name || 'Unknown'}
+                          </div>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-1 text-sm">

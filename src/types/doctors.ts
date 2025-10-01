@@ -5,6 +5,7 @@ export interface Doctor {
   email: string;
   contact_number: string;
   hospital_id: string;
+  hospital_name: string;
   department: string;
   department_id: string;
   department_name: string;
@@ -15,7 +16,6 @@ export interface Doctor {
   consultation_fee?: number;
   phone_number?: string;
   availability?: string;
-  hospital_name?: string;
   status?: 'active' | 'inactive';
   IsActive: number;
   CreatedBy: string;
@@ -27,16 +27,21 @@ export interface Doctor {
   UpdatedBy: string;
   UpdatedByEmail: string;
   UpdatedTime: string;
-  created_by?: string;
-  created_by_email?: string;
-  created_on?: string;
-  updated_on?: string;
+}
+
+export interface Pagination {
+  current_page: number;
+  has_next: boolean;
+  has_prev: boolean;
+  per_page: number;
+  total_items: number;
+  total_pages: number;
 }
 
 export interface DoctorsResponse {
   message: string;
   doctors: Doctor[];
-  count: number;
+  pagination: Pagination;
 }
 
 export interface DoctorResponse {

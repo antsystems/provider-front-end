@@ -17,6 +17,7 @@ import {
 import { DataTable } from '@/components/ui/data-table'
 import { Doctor } from '@/types/doctors'
 import { doctorsApi } from '@/services/doctorsApi'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import DoctorDetailsDialog from '@/components/forms/DoctorDetailsDialog'
 import AddDoctorDialog from '@/components/forms/AddDoctorDialog'
 import { toast } from 'sonner'
@@ -35,6 +36,7 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const confirmDialog = useConfirmDialog()
 
   const handleViewDoctor = (doctor: Doctor) => {
     setEditingDoctor(doctor)
@@ -48,37 +50,50 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
   }
 
   const handleDeleteDoctor = async (doctorId: string) => {
-    if (!confirm('Are you sure you want to delete this doctor? This action cannot be undone.')) {
-      return
-    }
+    const doctor = doctors.find(d => d.doctor_id === doctorId)
+    const doctorName = doctor ? `${doctor.doctor_name}` : 'this doctor'
 
-    try {
-      await doctorsApi.deleteDoctor(doctorId)
-      toast.success('Doctor deleted successfully')
-      onDelete?.(doctorId)
-      onRefresh?.()
-    } catch (error) {
-      console.error('Error deleting doctor:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to delete doctor')
-    }
+    confirmDialog.open({
+      title: 'Delete Doctor',
+      description: `Are you sure you want to delete ${doctorName}? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await doctorsApi.deleteDoctor(doctorId)
+          toast.success('Doctor deleted successfully')
+          onDelete?.(doctorId)
+          onRefresh?.()
+        } catch (error) {
+          console.error('Error deleting doctor:', error)
+          toast.error(error instanceof Error ? error.message : 'Failed to delete doctor')
+        }
+      }
+    })
   }
 
   const handleBulkDelete = async () => {
     if (selectedRows.length === 0) return
 
-    if (!confirm(`Are you sure you want to delete ${selectedRows.length} doctor(s)? This action cannot be undone.`)) {
-      return
-    }
-
-    try {
-      await Promise.all(selectedRows.map(id => doctorsApi.deleteDoctor(id)))
-      toast.success(`${selectedRows.length} doctor(s) deleted successfully`)
-      setSelectedRows([])
-      onRefresh?.()
-    } catch (error) {
-      console.error('Error deleting doctors:', error)
-      toast.error('Failed to delete some doctors')
-    }
+    confirmDialog.open({
+      title: 'Delete Doctors',
+      description: `Are you sure you want to delete ${selectedRows.length} doctor(s)? This action cannot be undone.`,
+      confirmText: 'Delete All',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await Promise.all(selectedRows.map(id => doctorsApi.deleteDoctor(id)))
+          toast.success(`${selectedRows.length} doctor(s) deleted successfully`)
+          setSelectedRows([])
+          onRefresh?.()
+        } catch (error) {
+          console.error('Error deleting doctors:', error)
+          toast.error('Failed to delete some doctors')
+        }
+      }
+    })
   }
 
   const handleDialogClose = (open: boolean) => {
@@ -161,6 +176,9 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Mail className="h-3 w-3" />
               {row.original.email}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Added by: {row.original.CreatedByEmail || 'Unknown'}
             </div>
           </div>
         </div>

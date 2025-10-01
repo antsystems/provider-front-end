@@ -106,7 +106,7 @@ export default function BulkUpdateStatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
@@ -121,7 +121,7 @@ export default function BulkUpdateStatusDialog({
           {/* Selected Users List */}
           <div className="space-y-3">
             <h4 className="font-medium">Selected Users ({selectedUsers.length})</h4>
-            <div className="max-h-40 overflow-y-auto border rounded-lg p-3 space-y-2">
+            <div className="max-h-40 overflow-y-auto scrollbar-hide border rounded-lg p-3 space-y-2">
               {selectedUsers.map((user) => (
                 <div key={user.user_id} className="flex items-center justify-between text-sm">
                   <div>
@@ -176,7 +176,7 @@ export default function BulkUpdateStatusDialog({
                     <CheckCircle className="h-4 w-4" />
                     <span className="font-medium">Successful Updates ({results.successful.length})</span>
                   </div>
-                  <div className="max-h-32 overflow-y-auto border rounded-lg p-3 space-y-1">
+                  <div className="max-h-32 overflow-y-auto scrollbar-hide border rounded-lg p-3 space-y-1">
                     {results.successful.map((update) => {
                       const user = getUserByIdFromSelected(update.user_id)
                       return (
@@ -197,7 +197,7 @@ export default function BulkUpdateStatusDialog({
                     <XCircle className="h-4 w-4" />
                     <span className="font-medium">Failed Updates ({results.failed.length})</span>
                   </div>
-                  <div className="max-h-32 overflow-y-auto border rounded-lg p-3 space-y-1">
+                  <div className="max-h-32 overflow-y-auto scrollbar-hide border rounded-lg p-3 space-y-1">
                     {results.failed.map((failure) => {
                       const user = getUserByIdFromSelected(failure.user_id)
                       return (

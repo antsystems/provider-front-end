@@ -83,7 +83,7 @@ export default function StaffPage() {
     setIsLoadingOptions(true)
     try {
       const response = await staffApi.getAvailableDepartments()
-      setDepartments(response.departments || [])
+      setDepartments(response.department_names || [])
     } catch (error) {
       console.error('Error fetching available departments:', error)
       toast.error('Failed to load departments')

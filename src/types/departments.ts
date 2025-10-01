@@ -1,3 +1,12 @@
+export interface EditHistoryEntry {
+  action: string;
+  changes: string;
+  edited_at: string;
+  edited_by: string;
+  edited_by_email: string;
+  edited_by_name: string;
+}
+
 export interface Department {
   id: string;
   department_id: string;
@@ -6,13 +15,18 @@ export interface Department {
   point_of_contact: string;
   phone_no: string;
   email_id: string;
-  hospital_id: string;
+  hospital_id?: string;
   hospital_name: string;
   status: 'active' | 'inactive';
   created_at: string;
   created_by: string;
+  created_by_email: string;
+  created_by_name: string;
   updated_at: string;
   updated_by: string;
+  updated_by_email: string;
+  updated_by_name: string;
+  edit_history?: EditHistoryEntry[];
 }
 
 export interface PaginationMetadata {

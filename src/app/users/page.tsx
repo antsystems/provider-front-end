@@ -56,7 +56,7 @@ export default function HospitalUsersPage() {
     let filtered = [...allUsers]
 
     // Apply status filter
-    if (filters.status && filters.status !== 'all') {
+    if (filters.status) {
       filtered = filtered.filter(user => user.status === filters.status)
     }
 

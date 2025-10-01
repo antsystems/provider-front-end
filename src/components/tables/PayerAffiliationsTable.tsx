@@ -18,6 +18,7 @@ import {
 import { DataTable } from '@/components/ui/data-table'
 import { PayerAffiliation, PAYER_AFFILIATION_STATUS_OPTIONS } from '@/types/payerAffiliations'
 import { payerAffiliationsApi } from '@/services/payerAffiliationsApi'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import PayerAffiliationDetailsDialog from '@/components/forms/PayerAffiliationDetailsDialog'
 import AddPayerAffiliationDialog from '@/components/forms/AddPayerAffiliationDialog'
 import BulkAffiliatePayersDialog from '@/components/forms/BulkAffiliatePayersDialog'
@@ -36,6 +37,7 @@ export function PayerAffiliationsTable({ affiliations, loading, onView, onUpdate
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false)
+  const confirmDialog = useConfirmDialog()
 
   const handleViewAffiliation = (affiliation: PayerAffiliation) => {
     setEditingAffiliation(affiliation)
@@ -49,18 +51,23 @@ export function PayerAffiliationsTable({ affiliations, loading, onView, onUpdate
   }
 
   const handleDeleteAffiliation = async (affiliationId: string, payerName: string) => {
-    if (!confirm(`Are you sure you want to delete the affiliation with "${payerName}"? This action cannot be undone.`)) {
-      return
-    }
-
-    try {
-      await payerAffiliationsApi.deletePayerAffiliation(affiliationId)
-      toast.success(`Payer affiliation with "${payerName}" deleted successfully`)
-      onRefresh?.()
-    } catch (error) {
-      console.error('Error deleting payer affiliation:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to delete payer affiliation')
-    }
+    confirmDialog.open({
+      title: 'Delete Payer Affiliation',
+      description: `Are you sure you want to delete the affiliation with "${payerName}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await payerAffiliationsApi.deletePayerAffiliation(affiliationId)
+          toast.success(`Payer affiliation with "${payerName}" deleted successfully`)
+          onRefresh?.()
+        } catch (error) {
+          console.error('Error deleting payer affiliation:', error)
+          toast.error(error instanceof Error ? error.message : 'Failed to delete payer affiliation')
+        }
+      }
+    })
   }
 
   const handleDialogClose = (open: boolean) => {

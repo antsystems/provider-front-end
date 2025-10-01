@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { Badge } from '../ui/badge'
 
 interface SidebarProps {
   isOpen: boolean
@@ -141,12 +142,17 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
               size="sm"
               asChild
               className={cn(
-                "w-full h-12 hover-lift rounded-xl transition-all duration-200 justify-center px-3"
+                "w-full h-12 hover-lift rounded-xl transition-all duration-200 justify-center px-3 group",
+                "hover:bg-primary/10 hover:shadow-sm border border-transparent",
+                active && "bg-primary/90 shadow-md"
               )}
               title={item.title}
             >
               <Link href={item.href} onClick={onClose}>
-                <item.icon size={18} />
+                <item.icon size={18} className={cn(
+                  "transition-all duration-200",
+                  active ? "text-white" : "text-muted-foreground group-hover:text-primary"
+                )} />
               </Link>
             </Button>
           ) : (
@@ -157,20 +163,32 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                 size="sm"
                 onClick={() => toggleExpanded(item.title)}
                 className={cn(
-                  "w-full h-12 hover-lift rounded-xl transition-all duration-200 justify-between px-4",
+                  "w-full h-12 hover-lift rounded-xl transition-all duration-200 justify-between px-4 group",
+                  "hover:bg-primary/10 hover:shadow-sm",
+                  active && "bg-primary/90 shadow-md",
                   level > 0 && "ml-4"
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon size={18} />
-                  <span className="font-medium">{item.title}</span>
+                  <item.icon size={18} className={cn(
+                    "transition-all duration-200",
+                    active ? "text-white" : "text-muted-foreground group-hover:text-primary"
+                  )} />
+                  <span className={cn(
+                    "font-medium transition-all duration-200",
+                    active ? "text-white" : "text-foreground group-hover:text-primary"
+                  )}>{item.title}</span>
                   {item.badge && (
                     <Badge variant="secondary" className="ml-auto">
                       {item.badge}
                     </Badge>
                   )}
                 </div>
-                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                <ChevronDown size={16} className={cn(
+                  "transition-all duration-200",
+                  isExpanded ? "rotate-180" : "rotate-0",
+                  active ? "text-white" : "text-muted-foreground group-hover:text-primary"
+                )} />
               </Button>
 
               {isExpanded && (
@@ -192,7 +210,9 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
         size="sm"
         asChild
         className={cn(
-          "w-full h-12 mb-1 hover-lift rounded-xl transition-all duration-200",
+          "w-full h-12 mb-1 hover-lift rounded-xl transition-all duration-200 group",
+          "hover:bg-primary/10 hover:shadow-sm border border-transparent",
+          active && "bg-primary/90 shadow-md",
           isCollapsed
             ? "justify-center px-3"
             : "justify-start px-4",
@@ -200,11 +220,17 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
         )}
         title={isCollapsed ? item.title : undefined}
       >
-        <Link href={item.href} onClick={onClose}>
-          <item.icon size={18} />
+        <Link href={item.href} onClick={onClose} className="flex items-center gap-3 w-full">
+          <item.icon size={18} className={cn(
+            "transition-all duration-200",
+            active ? "text-white" : "text-muted-foreground group-hover:text-primary"
+          )} />
           {!isCollapsed && (
             <>
-              <span className="font-medium">{item.title}</span>
+              <span className={cn(
+                "font-medium transition-all duration-200",
+                active ? "text-white" : "text-foreground group-hover:text-primary"
+              )}>{item.title}</span>
               {item.badge && (
                 <Badge variant="secondary" className="ml-auto">
                   {item.badge}
@@ -243,7 +269,7 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen glass-card border-r-0",
+          "fixed top-0 left-0 z-40 h-screen bg-white dark:bg-gray-950 border-r border-border/10 shadow-xl",
           "transform transition-all duration-300 ease-in-out",
           // Ensure consistent hydration by using safe defaults
           !isMounted && "translate-x-0 w-64", // Default state during SSR
@@ -257,34 +283,36 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
         <div className="flex flex-col h-full">
           {/* Logo Header with Integrated Toggle */}
           <div className={cn(
-            "flex items-center justify-between border-b border-border/50 transition-all duration-300 group",
+            "flex items-center justify-between border-b border-border/10 bg-gradient-to-r from-primary/5 to-accent/5 transition-all duration-300 group",
             !isMounted && "px-4 py-4", // Default state during SSR
             isMounted && (isCollapsed ? "px-3 py-3 flex-col gap-3" : "px-4 py-4")
           )}>
             {!isMounted || !isCollapsed ? (
               <>
                 <div className="flex items-center gap-3">
-                  <Image
-                    src="/assets/logo.png"
-                    alt="MedVerve Logo"
-                    width={32}
-                    height={32}
-                    className="w-8 h-8"
-                    priority
-                  />
+                  <div className="w-10 h-10 flex items-center justify-center">
+                    <Image
+                      src="/assets/logo.png"
+                      alt="MedVerve Logo"
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-contain"
+                      priority
+                    />
+                  </div>
                   <div>
-                    <h1 className="text-lg font-bold">
-                      <span className="text-primary">med</span>
+                    <h1 className="text-lg font-bold leading-tight">
+                      <span className="text-primary">Med</span>
                       <span className="text-accent">verve</span>
                     </h1>
-                    <p className="text-xs text-muted-foreground">Provider Portal</p>
+                    <p className="text-xs text-muted-foreground leading-tight">Provider Portal</p>
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={onToggle}
-                  className="hover:bg-accent/80 transition-all duration-200 opacity-60 hover:opacity-100 h-8 w-8"
+                  className="hover:bg-primary/10 hover:text-primary transition-all duration-200 opacity-70 hover:opacity-100 h-8 w-8 border border-border/20"
                   title="Collapse sidebar"
                 >
                   <Menu size={16} />
@@ -292,19 +320,21 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
               </>
             ) : isMounted ? (
               <>
-                <Image
-                  src="/assets/logo.png"
-                  alt="MedVerve Logo"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6"
-                  priority
-                />
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <Image
+                    src="/assets/logo.png"
+                    alt="MedVerve Logo"
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-contain"
+                    priority
+                  />
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={onToggle}
-                  className="hover:bg-accent/80 transition-all duration-200 h-8 w-8"
+                  className="hover:bg-primary/10 hover:text-primary transition-all duration-200 h-8 w-8 border border-border/20"
                   title="Expand sidebar"
                 >
                   <Menu size={14} />
@@ -328,7 +358,7 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
 
           {/* User Section */}
           <div className={cn(
-            "border-t border-border/50 transition-all duration-300",
+            "border-t border-border/10 bg-gradient-to-r from-muted/20 to-muted/10 transition-all duration-300",
             !isMounted && "px-4 py-4", // Default state during SSR
             isMounted && (isCollapsed ? "px-2 py-3" : "px-4 py-4")
           )}>
@@ -337,23 +367,21 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                 {/* User Profile */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-start h-12 px-3">
-                      <Avatar className="h-8 w-8 mr-3">
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                          {user?.employee_name
-                            ? user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                            : user?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                            || user?.email?.slice(0, 2).toUpperCase()
-                            || 'U'
+                    <Button variant="ghost" className="w-full justify-start h-12 px-3 rounded-xl hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all duration-200">
+                      <Avatar className="h-8 w-8 mr-3 ring-2 ring-primary/10">
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-xs font-semibold">
+                          {user?.name
+                            ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                            : user?.email?.slice(0, 2).toUpperCase() || 'U'
                           }
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col items-start text-left">
                         <span className="text-sm font-medium">
-                          {user?.employee_name || user?.displayName || user?.email?.split('@')[0] || 'User'}
+                          {user?.name || user?.email?.split('@')[0] || 'User'}
                         </span>
                         <span className="text-xs text-muted-foreground capitalize">
-                          {user?.role?.toUpperCase() || 'User'}
+                          {user?.role?.replace('_', ' ') || 'User'}
                         </span>
                       </div>
                     </Button>
@@ -363,17 +391,15 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                     <div className="flex items-center gap-2 p-2">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          {user?.employee_name
-                            ? user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                            : user?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                            || user?.email?.slice(0, 2).toUpperCase()
-                            || 'U'
+                          {user?.name
+                            ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                            : user?.email?.slice(0, 2).toUpperCase() || 'U'
                           }
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium">
-                          {user?.employee_name || user?.displayName || user?.email?.split('@')[0] || 'User'}
+                          {user?.name || user?.email?.split('@')[0] || 'User'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {user?.email || user?.phone || 'No contact info'}
@@ -411,11 +437,9 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                       <Button variant="ghost" size="icon" className="h-10 w-10" title="Profile">
                         <Avatar className="h-6 w-6">
                           <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                            {user?.employee_name
-                              ? user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                              : user?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                              || user?.email?.slice(0, 2).toUpperCase()
-                              || 'U'
+                            {user?.name
+                              ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                              : user?.email?.slice(0, 2).toUpperCase() || 'U'
                             }
                           </AvatarFallback>
                         </Avatar>
@@ -426,17 +450,15 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                       <div className="flex items-center gap-2 p-2">
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {user?.employee_name
-                              ? user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                              : user?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                              || user?.email?.slice(0, 2).toUpperCase()
-                              || 'U'
+                            {user?.name
+                              ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                              : user?.email?.slice(0, 2).toUpperCase() || 'U'
                             }
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium">
-                            {user?.employee_name || user?.displayName || user?.email?.split('@')[0] || 'User'}
+                            {user?.name || user?.email?.split('@')[0] || 'User'}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {user?.email || user?.phone || 'No contact info'}

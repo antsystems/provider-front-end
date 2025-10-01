@@ -3,7 +3,7 @@ export interface TariffLineItem {
   id: string
   code: string
   line_item: string
-  price: number
+  amount: number
   description?: string
   hospital_id: string
   created_at: string
@@ -12,15 +12,11 @@ export interface TariffLineItem {
 
 // Payer Mapping
 export interface PayerMapping {
-  id: string
   payer_id: string
   payer_name: string
-  mapped_price?: number
-  effective_from?: string
-  effective_to?: string
-  status: 'active' | 'inactive'
-  created_at: string
-  created_by: string
+  payer_type: string
+  mapped_at: string
+  mapped_by: string
 }
 
 // Tariff
@@ -38,8 +34,12 @@ export interface Tariff {
   status: 'active' | 'inactive'
   created_at: string
   created_by: string
+  created_by_email: string
+  created_by_name: string
   updated_at?: string
   updated_by?: string
+  updated_by_email?: string
+  updated_by_name?: string
 }
 
 // Pagination
@@ -141,7 +141,7 @@ export interface BulkLineItemCSVRow {
   tariff_name: string
   code: string
   line_item: string
-  price: number
+  amount: number
   description?: string
 }
 
@@ -162,7 +162,7 @@ export interface BulkLineItemsUploadResponse {
 export interface CreatePayerMappingRequest {
   payer_id: string
   payer_name: string
-  mapping_type: string
+  payer_type: string
 }
 
 export interface CreatePayerMappingResponse {
@@ -173,7 +173,7 @@ export interface CreatePayerMappingResponse {
 export interface BulkPayerMappingItem {
   payer_id: string
   payer_name: string
-  mapping_type: string
+  payer_type: string
 }
 
 export interface BulkCreatePayerMappingsRequest {
@@ -188,10 +188,7 @@ export interface BulkCreatePayerMappingsResponse {
 }
 
 export interface UpdatePayerMappingRequest {
-  mapped_price?: number
-  effective_from?: string
-  effective_to?: string
-  status?: 'active' | 'inactive'
+  payer_type?: string
 }
 
 export interface UpdatePayerMappingResponse {

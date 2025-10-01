@@ -10,82 +10,86 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { tariffsApi } from '@/services/tariffsApi'
+import { staffApi } from '@/services/staffApi'
 import { Upload, FileText, CheckCircle, XCircle, AlertCircle, Download, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 
-interface BulkUploadTariffDialogProps {
+interface BulkUploadStaffDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
 }
 
-interface PreviewLineItem {
-  tariff_name: string
-  code: string
-  line_item: string
-  amount: number
-  description?: string
+interface PreviewStaff {
+  staff_name: string
+  contact_number: string
+  email: string
+  department_name: string
+  designation?: string
+  qualification?: string
+  experience_years?: number
 }
 
-export default function BulkUploadTariffDialog({
+export default function BulkUploadStaffDialog({
   open,
   onOpenChange,
   onSuccess,
-}: BulkUploadTariffDialogProps) {
+}: BulkUploadStaffDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewData, setPreviewData] = useState<PreviewLineItem[]>([])
+  const [previewData, setPreviewData] = useState<PreviewStaff[]>([])
   const [uploadResult, setUploadResult] = useState<{
     successful: number
     failed: number
     message?: string
-    created_tariffs?: string[]
+    created_staff?: string[]
     errors?: Array<{ row: number; error: string }>
   } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const parseCSV = (text: string): PreviewLineItem[] => {
+  const parseCSV = (text: string): PreviewStaff[] => {
     const lines = text.split('\n').filter(line => line.trim())
     if (lines.length < 2) return []
 
-    const headers = lines[0].split(',').map(h => h.trim())
-    const items: PreviewLineItem[] = []
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
+    const items: PreviewStaff[] = []
 
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim())
       if (values.length >= 4) {
-        items.push({
-          tariff_name: values[0] || '',
-          code: values[1] || '',
-          line_item: values[2] || '',
-          amount: parseFloat(values[3]) || 0,
-          description: values[4] || undefined,
-        })
+        // Map CSV columns to staff fields
+        const staff: PreviewStaff = {
+          staff_name: values[0] || '',
+          contact_number: values[1] || '',
+          email: values[2] || '',
+          department_name: values[3] || '',
+          designation: values[4] || undefined,
+          qualification: values[5] || undefined,
+          experience_years: values[6] ? parseInt(values[6]) : undefined,
+        }
+        items.push(staff)
       }
     }
 
     return items
   }
 
-  const parseJSON = (text: string): PreviewLineItem[] => {
+  const parseJSON = (text: string): PreviewStaff[] => {
     try {
       const data = JSON.parse(text)
-      const items: PreviewLineItem[] = []
+      const items: PreviewStaff[] = []
 
       if (Array.isArray(data)) {
-        data.forEach((tariff: any) => {
-          if (tariff.tariff_name && tariff.line_items) {
-            tariff.line_items.forEach((item: any) => {
-              items.push({
-                tariff_name: tariff.tariff_name,
-                code: item.code || '',
-                line_item: item.line_item || '',
-                amount: item.amount || item.price || 0,
-                description: item.description || undefined,
-              })
-            })
-          }
+        data.forEach((staff: any) => {
+          items.push({
+            staff_name: staff.staff_name || staff.name || '',
+            contact_number: staff.contact_number || staff.phone_number || staff.phone || '',
+            email: staff.email || '',
+            department_name: staff.department_name || staff.department || '',
+            designation: staff.designation || undefined,
+            qualification: staff.qualification || undefined,
+            experience_years: staff.experience_years || staff.experience || undefined,
+          })
         })
       }
 
@@ -115,7 +119,7 @@ export default function BulkUploadTariffDialog({
       // Parse file for preview
       try {
         const text = await file.text()
-        let parsedItems: PreviewLineItem[] = []
+        let parsedItems: PreviewStaff[] = []
 
         if (isCSV) {
           parsedItems = parseCSV(text)
@@ -128,7 +132,7 @@ export default function BulkUploadTariffDialog({
         if (parsedItems.length === 0) {
           toast.warning('No valid entries found in the file')
         } else {
-          toast.success(`Found ${parsedItems.length} line items in the file`)
+          toast.success(`Found ${parsedItems.length} staff members in the file`)
         }
       } catch (error) {
         console.error('Error reading file:', error)
@@ -146,13 +150,13 @@ export default function BulkUploadTariffDialog({
 
     setIsLoading(true)
     try {
-      const result = await tariffsApi.bulkUploadLineItems(selectedFile)
+      const result = await staffApi.bulkUploadStaff(selectedFile)
 
       setUploadResult({
         successful: result.successful || 0,
         failed: result.failed || 0,
         message: result.message,
-        created_tariffs: result.created_tariffs,
+        created_staff: result.created_staff,
         errors: result.errors,
       })
 
@@ -193,12 +197,12 @@ export default function BulkUploadTariffDialog({
 
   const handleDownloadTemplate = () => {
     // Create CSV content with headers and example rows
-    const csvContent = `tariff_name,code,line_item,price,description
-Your Existing Tariff Name,C001,Consultation,500.00,General consultation
-Your Existing Tariff Name,C002,Follow-up,300.00,Follow-up consultation
-Your Existing Tariff Name,C003,Lab Test,150.00,Basic lab test
-Another Existing Tariff,S001,Specialist Consultation,1000.00,Specialist visit
-Another Existing Tariff,S002,Diagnostic Procedure,2500.00,Advanced diagnostic`
+    const csvContent = `staff_name,contact_number,email,department_name,designation,qualification,experience_years
+John Doe,9876543210,john.doe@hospital.com,Cardiology,Senior Nurse,B.Sc Nursing,5
+Jane Smith,9876543211,jane.smith@hospital.com,Emergency,Staff Nurse,B.Sc Nursing,3
+Dr. Michael Johnson,9876543212,michael.j@hospital.com,Orthopedics,Consultant,MBBS MS Orthopedics,10
+Sarah Wilson,9876543213,sarah.w@hospital.com,Administration,Admin Officer,MBA,7
+Robert Brown,9876543214,robert.b@hospital.com,Laboratory,Lab Technician,B.Sc MLT,4`
 
     // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -206,14 +210,14 @@ Another Existing Tariff,S002,Diagnostic Procedure,2500.00,Advanced diagnostic`
     const url = URL.createObjectURL(blob)
 
     link.setAttribute('href', url)
-    link.setAttribute('download', 'tariff_line_items_template.csv')
+    link.setAttribute('download', 'staff_bulk_upload_template.csv')
     link.style.visibility = 'hidden'
 
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
 
-    toast.success('Template downloaded! Replace tariff names with your existing tariff names.')
+    toast.success('Template downloaded! Fill in your staff data.')
   }
 
   return (
@@ -222,10 +226,10 @@ Another Existing Tariff,S002,Diagnostic Procedure,2500.00,Advanced diagnostic`
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5 text-primary" />
-            Bulk Upload Tariff Line Items
+            Bulk Upload Staff Members
           </DialogTitle>
           <DialogDescription>
-            Upload multiple line items to existing tariffs from CSV or JSON file
+            Upload multiple staff members from CSV or JSON file
           </DialogDescription>
         </DialogHeader>
 
@@ -250,24 +254,42 @@ Another Existing Tariff,S002,Diagnostic Procedure,2500.00,Advanced diagnostic`
                 <div>
                   <p className="font-medium text-primary">CSV Format:</p>
                   <code className="block bg-muted p-2 rounded mt-1 text-xs">
-                    tariff_name,code,line_item,price,description
+                    staff_name,contact_number,email,department_name,designation,qualification,experience_years
                     <br />
-                    Test,C001,Consultation,500.00,General consultation
+                    John Doe,9876543210,john.doe@hospital.com,Cardiology,Senior Nurse,B.Sc Nursing,5
                     <br />
-                    Test,C002,Follow-up,300.00,Follow-up consultation
+                    Jane Smith,9876543211,jane.smith@hospital.com,Emergency,Staff Nurse,B.Sc Nursing,3
                   </code>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    * "Test" must be the name of an existing tariff in your system
-                  </p>
+                </div>
+
+                <div>
+                  <p className="font-medium text-primary">JSON Format:</p>
+                  <code className="block bg-muted p-2 rounded mt-1 text-xs">
+                    [
+                    <br />
+                    &nbsp;&nbsp;&#123;
+                    <br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;"staff_name": "John Doe",
+                    <br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;"contact_number": "9876543210",
+                    <br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;"email": "john.doe@hospital.com",
+                    <br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;"department_name": "Cardiology"
+                    <br />
+                    &nbsp;&nbsp;&#125;
+                    <br />
+                    ]
+                  </code>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-950 rounded">
                     <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                      <strong>Required fields:</strong> tariff_name, code, line_item, price/amount
+                      <strong>Required fields:</strong> staff_name, contact_number, email, department_name
                       <br />
-                      <strong>Optional:</strong> description
+                      <strong>Optional:</strong> designation, qualification, experience_years
                     </p>
                   </div>
                 </div>
@@ -284,9 +306,9 @@ Another Existing Tariff,S002,Diagnostic Procedure,2500.00,Advanced diagnostic`
                 accept=".csv,.json"
                 onChange={handleFileSelect}
                 className="hidden"
-                id="bulk-upload-file"
+                id="bulk-upload-staff-file"
               />
-              <label htmlFor="bulk-upload-file">
+              <label htmlFor="bulk-upload-staff-file">
                 <Button type="button" variant="outline" asChild>
                   <span>
                     <FileText className="mr-2 h-4 w-4" />
@@ -320,25 +342,27 @@ Another Existing Tariff,S002,Diagnostic Procedure,2500.00,Advanced diagnostic`
                         <thead className="bg-muted sticky top-0">
                           <tr>
                             <th className="text-left py-2 px-3 font-medium">#</th>
-                            <th className="text-left py-2 px-3 font-medium">Tariff Name</th>
-                            <th className="text-left py-2 px-3 font-medium">Code</th>
-                            <th className="text-left py-2 px-3 font-medium">Line Item</th>
-                            <th className="text-right py-2 px-3 font-medium">Price</th>
-                            <th className="text-left py-2 px-3 font-medium">Description</th>
+                            <th className="text-left py-2 px-3 font-medium">Staff Name</th>
+                            <th className="text-left py-2 px-3 font-medium">Contact</th>
+                            <th className="text-left py-2 px-3 font-medium">Email</th>
+                            <th className="text-left py-2 px-3 font-medium">Department</th>
+                            <th className="text-left py-2 px-3 font-medium">Designation</th>
+                            <th className="text-left py-2 px-3 font-medium">Experience</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {previewData.map((item, index) => (
+                          {previewData.map((staff, index) => (
                             <tr key={index} className="border-t hover:bg-muted/50">
                               <td className="py-2 px-3 text-muted-foreground">{index + 1}</td>
-                              <td className="py-2 px-3 font-medium">{item.tariff_name}</td>
-                              <td className="py-2 px-3 font-mono text-xs">{item.code}</td>
-                              <td className="py-2 px-3">{item.line_item}</td>
-                              <td className="py-2 px-3 text-right font-mono">
-                                {item.amount.toFixed(2)}
-                              </td>
+                              <td className="py-2 px-3 font-medium">{staff.staff_name}</td>
+                              <td className="py-2 px-3 font-mono text-xs">{staff.contact_number}</td>
+                              <td className="py-2 px-3 text-xs">{staff.email}</td>
+                              <td className="py-2 px-3">{staff.department_name}</td>
                               <td className="py-2 px-3 text-muted-foreground text-xs">
-                                {item.description || '-'}
+                                {staff.designation || '-'}
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                {staff.experience_years || '-'}
                               </td>
                             </tr>
                           ))}
@@ -346,19 +370,19 @@ Another Existing Tariff,S002,Diagnostic Procedure,2500.00,Advanced diagnostic`
                       </table>
                     </div>
 
-                    {/* Group by tariff summary */}
+                    {/* Group by department summary */}
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(
-                        previewData.reduce((acc, item) => {
-                          acc[item.tariff_name] = (acc[item.tariff_name] || 0) + 1
+                        previewData.reduce((acc, staff) => {
+                          acc[staff.department_name] = (acc[staff.department_name] || 0) + 1
                           return acc
                         }, {} as Record<string, number>)
-                      ).map(([tariffName, count]) => (
+                      ).map(([deptName, count]) => (
                         <div
-                          key={tariffName}
+                          key={deptName}
                           className="text-xs px-2 py-1 bg-primary/10 rounded"
                         >
-                          <span className="font-medium">{tariffName}:</span> {count} items
+                          <span className="font-medium">{deptName}:</span> {count} staff
                         </div>
                       ))}
                     </div>
@@ -390,17 +414,17 @@ Another Existing Tariff,S002,Diagnostic Procedure,2500.00,Advanced diagnostic`
                       </div>
                     )}
 
-                    {/* Created/Updated Tariffs */}
-                    {uploadResult.created_tariffs && uploadResult.created_tariffs.length > 0 && (
+                    {/* Created Staff */}
+                    {uploadResult.created_staff && uploadResult.created_staff.length > 0 && (
                       <div>
-                        <p className="text-sm font-medium mb-2">Tariffs Updated:</p>
+                        <p className="text-sm font-medium mb-2">Created Staff IDs:</p>
                         <div className="flex flex-wrap gap-2">
-                          {uploadResult.created_tariffs.map((tariffId, index) => (
+                          {uploadResult.created_staff.map((staffId, index) => (
                             <div
                               key={index}
                               className="px-3 py-1.5 bg-primary/10 text-primary rounded-md font-mono text-sm"
                             >
-                              {tariffId}
+                              {staffId}
                             </div>
                           ))}
                         </div>

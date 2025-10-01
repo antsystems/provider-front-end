@@ -212,7 +212,7 @@ export default function AddPayerMappingDialog({
                       Loading payers...
                     </div>
                   ) : (
-                    <div className="border rounded-lg p-3 max-h-64 overflow-y-auto space-y-2">
+                    <div className="border rounded-lg p-3 max-h-64 overflow-y-auto scrollbar-hide space-y-2">
                       {availablePayers.length === 0 ? (
                         <div className="text-center py-4 text-muted-foreground">
                           No payers available

@@ -43,13 +43,10 @@ export interface SingleStaffResponse {
 }
 
 export interface CreateStaffRequest {
-  name: string;
-  phone_number: string;
+  staff_name: string;
+  contact_number: string;
   email: string;
-  department_id: string;
-  designation: string;
-  qualification: string;
-  experience_years: number;
+  department_name: string;
 }
 
 export interface UpdateStaffRequest {
@@ -77,6 +74,6 @@ export interface StaffApiFilters {
 
 export interface DepartmentsResponse {
   message: string;
-  departments: string[];
+  department_names: string[];
   count: number;
 }

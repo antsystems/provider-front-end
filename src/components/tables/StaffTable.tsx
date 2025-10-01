@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Eye, Users, Mail, Phone, User, Trash2, Plus } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Eye, Users, Mail, Phone, User, Trash2, Plus, Upload } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
@@ -17,8 +17,10 @@ import {
 import { DataTable } from '@/components/ui/data-table'
 import { Staff } from '@/types/staff'
 import { staffApi } from '@/services/staffApi'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import StaffDetailsDialog from '@/components/forms/StaffDetailsDialog'
 import AddStaffDialog from '@/components/forms/AddStaffDialog'
+import BulkUploadStaffDialog from '@/components/forms/BulkUploadStaffDialog'
 import { toast } from 'sonner'
 
 interface StaffTableProps {
@@ -35,6 +37,8 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
+  const confirmDialog = useConfirmDialog()
 
   const handleViewStaff = (staff: Staff) => {
     setEditingStaff(staff)
@@ -48,37 +52,50 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
   }
 
   const handleDeleteStaff = async (staffId: string) => {
-    if (!confirm('Are you sure you want to delete this staff member? This action cannot be undone.')) {
-      return
-    }
+    const staffMember = staff.find(s => s.staff_id === staffId)
+    const staffName = staffMember ? `${staffMember.name}` : 'this staff member'
 
-    try {
-      await staffApi.deleteStaff(staffId)
-      toast.success('Staff member deleted successfully')
-      onDelete?.(staffId)
-      onRefresh?.()
-    } catch (error) {
-      console.error('Error deleting staff member:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to delete staff member')
-    }
+    confirmDialog.open({
+      title: 'Delete Staff Member',
+      description: `Are you sure you want to delete ${staffName}? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await staffApi.deleteStaff(staffId)
+          toast.success('Staff member deleted successfully')
+          onDelete?.(staffId)
+          onRefresh?.()
+        } catch (error) {
+          console.error('Error deleting staff member:', error)
+          toast.error(error instanceof Error ? error.message : 'Failed to delete staff member')
+        }
+      }
+    })
   }
 
   const handleBulkDelete = async () => {
     if (selectedRows.length === 0) return
 
-    if (!confirm(`Are you sure you want to delete ${selectedRows.length} staff member(s)? This action cannot be undone.`)) {
-      return
-    }
-
-    try {
-      await Promise.all(selectedRows.map(id => staffApi.deleteStaff(id)))
-      toast.success(`${selectedRows.length} staff member(s) deleted successfully`)
-      setSelectedRows([])
-      onRefresh?.()
-    } catch (error) {
-      console.error('Error deleting staff members:', error)
-      toast.error('Failed to delete some staff members')
-    }
+    confirmDialog.open({
+      title: 'Delete Staff Members',
+      description: `Are you sure you want to delete ${selectedRows.length} staff member(s)? This action cannot be undone.`,
+      confirmText: 'Delete All',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await Promise.all(selectedRows.map(id => staffApi.deleteStaff(id)))
+          toast.success(`${selectedRows.length} staff member(s) deleted successfully`)
+          setSelectedRows([])
+          onRefresh?.()
+        } catch (error) {
+          console.error('Error deleting staff members:', error)
+          toast.error('Failed to delete some staff members')
+        }
+      }
+    })
   }
 
   const handleDialogClose = (open: boolean) => {
@@ -291,10 +308,16 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       <div className="space-y-4">
         {/* Header with Add Staff Button */}
         <div className="flex items-center justify-between">
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Staff Member
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Staff Member
+            </Button>
+            <Button onClick={() => setIsBulkUploadOpen(true)} variant="outline" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Bulk Upload
+            </Button>
+          </div>
         </div>
 
         {/* Bulk Actions Bar */}
@@ -342,6 +365,13 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       <AddStaffDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
+        onSuccess={onRefresh}
+      />
+
+      {/* Bulk Upload Staff Dialog */}
+      <BulkUploadStaffDialog
+        open={isBulkUploadOpen}
+        onOpenChange={setIsBulkUploadOpen}
         onSuccess={onRefresh}
       />
     </>

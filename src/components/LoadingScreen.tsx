@@ -16,12 +16,12 @@ export default function LoadingScreen({ isLoading = false }: LoadingScreenProps)
       <div className="flex flex-col items-center space-y-4">
         {/* Logo */}
         <div className="relative">
-          <div className="w-16 h-16 flex items-center justify-center">
+          <div className="w-20 h-20 flex items-center justify-center">
             <Image
               src="/assets/logo.png"
               alt="Medvere Logo"
-              width={64}
-              height={64}
+              width={80}
+              height={80}
               className="w-full h-full object-contain"
               priority
             />

@@ -31,10 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CreateDepartmentRequest, DEPARTMENT_TYPE_OPTIONS } from '@/types/departments'
 import { departmentsApi } from '@/services/departmentsApi'
-import { Building2, AlertTriangle, Plus, Trash2, Users } from 'lucide-react'
+import { Building2, Plus, Trash2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Separator } from '@/components/ui/separator'
 
@@ -44,7 +43,7 @@ const staffMemberSchema = z.object({
   email: z.string().email('Invalid email address'),
   phone_number: z.string().min(10, 'Phone number must be at least 10 digits'),
   qualification: z.string().optional(),
-  experience_years: z.coerce.number().min(0).optional(),
+  experience_years: z.number().min(0).optional(),
 })
 
 const formSchema = z.object({
@@ -138,7 +137,7 @@ export default function AddDepartmentDialog({
       designation: '',
       email: '',
       phone_number: '',
-      qualification: '',
+      qualification: undefined,
       experience_years: undefined,
     })
     setShowStaffSection(true)
@@ -146,7 +145,7 @@ export default function AddDepartmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-primary" />
@@ -160,12 +159,6 @@ export default function AddDepartmentDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Note:</strong> Only Hospital Admins can create departments. All required fields must be filled.
-                </AlertDescription>
-              </Alert>
 
               {/* Department Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -403,7 +396,12 @@ export default function AddDepartmentDialog({
                               <FormItem>
                                 <FormLabel>Qualification</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="MD Cardiology" {...field} disabled={isLoading} />
+                                  <Input
+                                    placeholder="MD Cardiology"
+                                    {...field}
+                                    value={field.value ?? ''}
+                                    disabled={isLoading}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -413,11 +411,21 @@ export default function AddDepartmentDialog({
                           <FormField
                             control={form.control}
                             name={`staff_members.${index}.experience_years`}
-                            render={({ field }) => (
+                            render={({ field: { onChange, value, ...field } }) => (
                               <FormItem>
                                 <FormLabel>Experience (Years)</FormLabel>
                                 <FormControl>
-                                  <Input type="number" placeholder="10" {...field} disabled={isLoading} />
+                                  <Input
+                                    type="number"
+                                    placeholder="10"
+                                    {...field}
+                                    value={value ?? ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      onChange(val === '' ? undefined : Number(val));
+                                    }}
+                                    disabled={isLoading}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>

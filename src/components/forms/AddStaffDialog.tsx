@@ -21,27 +21,31 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CreateStaffRequest } from '@/types/staff'
 import { staffApi } from '@/services/staffApi'
-import { Users, Mail, Phone, Building } from 'lucide-react'
+import { Users, Mail, Phone, Building, ChevronsUpDown, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 const createStaffSchema = z.object({
-  name: z.string().min(2, 'Staff name must be at least 2 characters'),
-  phone_number: z.string().min(10, 'Phone number must be at least 10 characters'),
+  staff_name: z.string().min(2, 'Staff name must be at least 2 characters'),
+  contact_number: z.string().min(10, 'Contact number must be at least 10 characters'),
   email: z.string().email('Invalid email address'),
-  department_id: z.string().min(1, 'Department is required'),
-  designation: z.string().min(2, 'Designation is required'),
-  qualification: z.string().min(2, 'Qualification is required'),
-  experience_years: z.number().min(0, 'Experience must be 0 or more'),
+  department_name: z.string().min(1, 'Department is required'),
 })
 
 type CreateStaffFormValues = z.infer<typeof createStaffSchema>
@@ -58,19 +62,17 @@ export default function AddStaffDialog({
   onSuccess,
 }: AddStaffDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([])
+  const [departments, setDepartments] = useState<Array<string>>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(false)
+  const [openDepartment, setOpenDepartment] = useState(false)
 
   const form = useForm<CreateStaffFormValues>({
     resolver: zodResolver(createStaffSchema),
     defaultValues: {
-      name: '',
-      phone_number: '',
+      staff_name: '',
+      contact_number: '',
       email: '',
-      department_id: '',
-      designation: '',
-      qualification: '',
-      experience_years: 0,
+      department_name: '',
     },
   })
 
@@ -80,22 +82,10 @@ export default function AddStaffDialog({
 
       setIsLoadingOptions(true)
       try {
-        const { departmentsApi } = await import('@/services/departmentsApi')
-        const departmentsResponse = await departmentsApi.getDepartments({ include_inactive: false })
-        // Map departments to have id and name, deduplicate by id
-        const deptMap = new Map<string, { id: string; name: string }>()
-        departmentsResponse.departments.forEach(dept => {
-          if (dept.department_id && dept.department_name) {
-            deptMap.set(dept.department_id, {
-              id: dept.department_id,
-              name: dept.department_name
-            })
-          }
-        })
-        const deptList = Array.from(deptMap.values()).sort((a, b) => a.name.localeCompare(b.name))
-        setDepartments(deptList)
+        const response = await staffApi.getAvailableDepartments()
+        setDepartments(response.department_names || [])
       } catch (error) {
-        console.error('Error fetching options:', error)
+        console.error('Error fetching available departments:', error)
         toast.error('Failed to load departments')
       } finally {
         setIsLoadingOptions(false)
@@ -109,13 +99,10 @@ export default function AddStaffDialog({
     setIsLoading(true)
     try {
       const createData: CreateStaffRequest = {
-        name: values.name,
-        phone_number: values.phone_number,
+        staff_name: values.staff_name,
+        contact_number: values.contact_number,
         email: values.email,
-        department_id: values.department_id,
-        designation: values.designation,
-        qualification: values.qualification,
-        experience_years: values.experience_years,
+        department_name: values.department_name,
       }
 
       await staffApi.createStaff(createData)
@@ -139,7 +126,7 @@ export default function AddStaffDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
@@ -162,7 +149,7 @@ export default function AddStaffDialog({
               <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="staff_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Staff Name *</FormLabel>
@@ -194,14 +181,14 @@ export default function AddStaffDialog({
 
                   <FormField
                     control={form.control}
-                    name="phone_number"
+                    name="contact_number"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number *</FormLabel>
+                        <FormLabel>Contact Number *</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                            <Input {...field} placeholder="+1-555-0123" className="pl-10" />
+                            <Input {...field} placeholder="+91-9876543210" className="pl-10" />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -209,50 +196,6 @@ export default function AddStaffDialog({
                     )}
                   />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="designation"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Designation *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="e.g., Senior Doctor" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="qualification"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Qualification *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="e.g., MD, MBBS" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="experience_years"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Experience (Years) *</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="number" min="0" placeholder="0" onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
             </div>
 
@@ -265,24 +208,59 @@ export default function AddStaffDialog({
 
               <FormField
                 control={form.control}
-                name="department_id"
+                name="department_name"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Department *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingOptions}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={isLoadingOptions ? "Loading..." : "Select a department"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {departments?.map((department) => (
-                          <SelectItem key={department.id} value={department.id}>
-                            {department.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openDepartment}
+                            disabled={isLoadingOptions}
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value || (isLoadingOptions ? "Loading..." : "Select a department")}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search department..." />
+                          <CommandList>
+                            <CommandEmpty>No department found.</CommandEmpty>
+                            <CommandGroup>
+                              {departments.map((department) => (
+                                <CommandItem
+                                  value={department}
+                                  key={department}
+                                  onSelect={() => {
+                                    form.setValue("department_name", department)
+                                    setOpenDepartment(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      department === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {department}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -146,8 +146,8 @@ function LoginPageContent() {
                 <Image
                   src="/assets/logo.png"
                   alt="Medvere Logo"
-                  width={120}
-                  height={120}
+                  width={80}
+                  height={80}
                   className="w-full h-full object-contain"
                   priority
                 />

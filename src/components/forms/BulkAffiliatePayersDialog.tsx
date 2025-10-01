@@ -213,7 +213,7 @@ export default function BulkAffiliatePayersDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building className="h-5 w-5 text-primary" />
@@ -240,7 +240,7 @@ export default function BulkAffiliatePayersDialog({
                   <CheckCircle className="h-4 w-4" />
                   <span className="font-medium">Successful Affiliations ({results.successful_affiliations.length})</span>
                 </div>
-                <div className="max-h-32 overflow-y-auto border rounded-lg p-3 space-y-2">
+                <div className="max-h-32 overflow-y-auto scrollbar-hide border rounded-lg p-3 space-y-2">
                   {results.successful_affiliations.map((affiliation, index) => (
                     <div key={index} className="flex items-center justify-between text-sm">
                       <span className="font-medium">{affiliation.payer_name}</span>
@@ -263,7 +263,7 @@ export default function BulkAffiliatePayersDialog({
                   <XCircle className="h-4 w-4" />
                   <span className="font-medium">Failed Affiliations ({results.failed_affiliations.length})</span>
                 </div>
-                <div className="max-h-32 overflow-y-auto border rounded-lg p-3 space-y-2">
+                <div className="max-h-32 overflow-y-auto scrollbar-hide border rounded-lg p-3 space-y-2">
                   {results.failed_affiliations.map((failure, index) => (
                     <div key={index} className="text-sm">
                       <div className="font-medium">{failure.payer_name}</div>
@@ -358,7 +358,7 @@ export default function BulkAffiliatePayersDialog({
                           <span className="ml-2">Loading payers...</span>
                         </div>
                       ) : (
-                        <div className="max-h-60 overflow-y-auto border rounded-lg p-3 space-y-2">
+                        <div className="max-h-60 overflow-y-auto scrollbar-hide border rounded-lg p-3 space-y-2">
                           {filteredPayers.map((payer) => (
                             <FormField
                               key={payer.id}

@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Users, FileText, DollarSign, Download } from 'lucide-react'
+import { BarChart3, Users, FileText, DollarSign, Download, IndianRupee } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -64,7 +64,7 @@ export default function Dashboard() {
       { title: 'Total Hospital Users', value: String(s.total_hospital_users ?? 0), icon: Users, description: 'System users' },
       { title: 'Total Payer Affiliations', value: String(s.total_payer_affiliations ?? 0), icon: BarChart3, description: 'Insurance partners' },
       { title: 'Total Staff', value: String(s.total_staff ?? 0), icon: Users, description: 'Staff members' },
-      { title: 'Total Tariffs', value: String(s.total_tariffs ?? 0), icon: DollarSign, description: 'Active tariffs' },
+      { title: 'Total Tariffs', value: String(s.total_tariffs ?? 0), icon: IndianRupee, description: 'Active tariffs' },
       { title: 'Total TDS Mappings', value: String(s.total_tds_mappings ?? 0), icon: BarChart3, description: 'Tax mappings' },
     ]
   }, [summary])

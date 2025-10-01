@@ -34,13 +34,13 @@ export function useCounterAnimation(end: string, duration: number = 600, delay: 
         const currentValue = numericValue * easeOutCubic
 
         // Format the value back to original format
-        if (end.includes('$')) {
+        if (end.includes('₹') || end.includes('$')) {
           if (end.includes('M')) {
-            setCount(`$${(currentValue / 1000000).toFixed(1)}M`)
+            setCount(`₹${(currentValue / 1000000).toFixed(1)}M`)
           } else if (end.includes('K')) {
-            setCount(`$${(currentValue / 1000).toFixed(1)}K`)
+            setCount(`₹${(currentValue / 1000).toFixed(1)}K`)
           } else {
-            setCount(`$${Math.round(currentValue)}`)
+            setCount(`₹${Math.round(currentValue)}`)
           }
         } else if (end.includes(',')) {
           setCount(Math.round(currentValue).toLocaleString())

@@ -163,6 +163,44 @@ class StaffApiService {
       throw error;
     }
   }
+
+  async bulkUploadStaff(file: File): Promise<{
+    successful: number;
+    failed: number;
+    message?: string;
+    created_staff?: string[];
+    errors?: Array<{ row: number; error: string }>;
+  }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const token = authService.getCurrentToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(`${this.baseUrl}/staff/bulk-upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type for FormData, let browser set it
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Failed to bulk upload staff:', error);
+      throw error;
+    }
+  }
 }
 
 export const staffApi = new StaffApiService();

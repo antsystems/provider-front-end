@@ -376,7 +376,7 @@ export default function StaffDetailsDialog({
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                           <Command>
                             <CommandInput placeholder="Search department..." />
-                            <CommandList className="max-h-[200px] overflow-y-auto">
+                            <CommandList className="max-h-[200px] overflow-y-auto scrollbar-hide">
                               <CommandEmpty>No department found.</CommandEmpty>
                               <CommandGroup>
                                 {departments.map((dept) => (

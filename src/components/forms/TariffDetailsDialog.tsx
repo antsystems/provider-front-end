@@ -60,7 +60,7 @@ export default function TariffDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div>
@@ -170,7 +170,7 @@ export default function TariffDetailsDialog({
                             {item.description || '-'}
                           </td>
                           <td className="py-2 px-3 text-right font-semibold">
-                            {formatCurrency(item.price)}
+                            {formatCurrency(item.amount)}
                           </td>
                         </tr>
                       ))}
@@ -198,28 +198,20 @@ export default function TariffDetailsDialog({
                 <div className="space-y-3">
                   {tariff.payer_mappings.map((mapping) => (
                     <div
-                      key={mapping.id}
+                      key={mapping.payer_id}
                       className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
                     >
                       <div className="flex-1">
                         <div className="font-medium">{mapping.payer_name}</div>
                         <div className="text-sm text-muted-foreground">
-                          ID: {mapping.payer_id}
+                          ID: {mapping.payer_id} | Type: {mapping.payer_type}
                         </div>
-                        {(mapping.effective_from || mapping.effective_to) && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {mapping.effective_from && `From: ${formatDate(mapping.effective_from)}`}
-                            {mapping.effective_to && ` - To: ${formatDate(mapping.effective_to)}`}
-                          </div>
-                        )}
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Mapped: {formatDate(mapping.mapped_at)}
+                        </div>
                       </div>
                       <div className="text-right">
-                        {mapping.mapped_price && (
-                          <div className="font-semibold text-lg">
-                            {formatCurrency(mapping.mapped_price)}
-                          </div>
-                        )}
-                        {getStatusBadge(mapping.status)}
+                        <Badge variant="outline">{mapping.payer_type}</Badge>
                       </div>
                     </div>
                   ))}

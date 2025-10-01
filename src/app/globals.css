@@ -11,8 +11,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 6% 15%;
 
-    /* Modern clean blue */
-    --primary: 210 70% 58%;
+    /* MedVerve brand blue (#009ADA) */
+    --primary: 198 100% 43%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 25% 97%;
@@ -20,8 +20,8 @@
     --muted: 210 20% 96%;
     --muted-foreground: 240 4% 46%;
 
-    /* Clean green accent */
-    --accent: 142 76% 44%;
+    /* MedVerve brand green (#8DC63F) */
+    --accent: 85 55% 51%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 90% 65%;
@@ -43,19 +43,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 8% 6%;
     --popover-foreground: 0 0% 98%;
-    --primary: 210 70% 65%;
+    --primary: 198 100% 50%;
     --primary-foreground: 240 10% 4%;
     --secondary: 240 8% 12%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 8% 12%;
     --muted-foreground: 240 4% 60%;
-    --accent: 142 76% 50%;
+    --accent: 85 55% 55%;
     --accent-foreground: 240 10% 4%;
     --destructive: 0 90% 70%;
     --destructive-foreground: 240 10% 4%;
     --border: 240 8% 15%;
     --input: 240 8% 15%;
-    --ring: 210 70% 65%;
+    --ring: 198 100% 50%;
 
     --glass-bg: 240 8% 6% / 0.8;
     --glass-border: 240 8% 15% / 0.3;

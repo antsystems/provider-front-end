@@ -18,6 +18,7 @@ import {
 import { DataTable } from '@/components/ui/data-table'
 import { Department, DEPARTMENT_STATUS_OPTIONS, DEPARTMENT_TYPE_OPTIONS } from '@/types/departments'
 import { departmentsApi } from '@/services/departmentsApi'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import DepartmentDetailsDialog from '@/components/forms/DepartmentDetailsDialog'
 import AddDepartmentDialog from '@/components/forms/AddDepartmentDialog'
 import { toast } from 'sonner'
@@ -47,6 +48,7 @@ export function DepartmentsTable({
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const confirmDialog = useConfirmDialog()
 
   const handleViewDepartment = (department: Department) => {
     setEditingDepartment(department)
@@ -60,18 +62,23 @@ export function DepartmentsTable({
   }
 
   const handleDeleteDepartment = async (departmentId: string, departmentName: string) => {
-    if (!confirm(`Are you sure you want to delete "${departmentName}"? This action cannot be undone.`)) {
-      return
-    }
-
-    try {
-      await departmentsApi.deleteDepartment(departmentId)
-      toast.success(`Department "${departmentName}" deleted successfully`)
-      onRefresh?.()
-    } catch (error) {
-      console.error('Error deleting department:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to delete department')
-    }
+    confirmDialog.open({
+      title: 'Delete Department',
+      description: `Are you sure you want to delete "${departmentName}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await departmentsApi.deleteDepartment(departmentId)
+          toast.success(`Department "${departmentName}" deleted successfully`)
+          onRefresh?.()
+        } catch (error) {
+          console.error('Error deleting department:', error)
+          toast.error(error instanceof Error ? error.message : 'Failed to delete department')
+        }
+      }
+    })
   }
 
   const handleDialogClose = (open: boolean) => {

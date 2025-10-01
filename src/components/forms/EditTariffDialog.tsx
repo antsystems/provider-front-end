@@ -31,6 +31,7 @@ import {
 import { Tariff } from '@/types/tariffs'
 import { tariffsApi } from '@/services/tariffsApi'
 import { toast } from 'sonner'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import AddLineItemDialog from './AddLineItemDialog'
 import AddPayerMappingDialog from './AddPayerMappingDialog'
 
@@ -52,6 +53,7 @@ export default function EditTariffDialog({
   const [addPayerMappingOpen, setAddPayerMappingOpen] = useState(false)
   const [deletingLineItem, setDeletingLineItem] = useState<string | null>(null)
   const [deletingPayer, setDeletingPayer] = useState<string | null>(null)
+  const confirmDialog = useConfirmDialog()
 
   useEffect(() => {
     setTariff(initialTariff)
@@ -81,23 +83,30 @@ export default function EditTariffDialog({
   }
 
   const handleDeleteLineItem = async (lineItemId: string) => {
-    if (!confirm('Are you sure you want to delete this line item?')) return
+    confirmDialog.open({
+      title: 'Delete Line Item',
+      description: 'Are you sure you want to delete this line item? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          setDeletingLineItem(lineItemId)
+          await tariffsApi.deleteLineItem(tariff.tariff_id, lineItemId)
+          toast.success('Line item deleted successfully')
 
-    try {
-      setDeletingLineItem(lineItemId)
-      await tariffsApi.deleteLineItem(tariff.id, lineItemId)
-      toast.success('Line item deleted successfully')
-
-      // Refresh tariff data
-      const response = await tariffsApi.getTariffById(tariff.tariff_id)
-      setTariff(response.tariff)
-      onUpdate?.()
-    } catch (error) {
-      console.error('Error deleting line item:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to delete line item')
-    } finally {
-      setDeletingLineItem(null)
-    }
+          // Refresh tariff data
+          const response = await tariffsApi.getTariffById(tariff.tariff_id)
+          setTariff(response.tariff)
+          onUpdate?.()
+        } catch (error) {
+          console.error('Error deleting line item:', error)
+          toast.error(error instanceof Error ? error.message : 'Failed to delete line item')
+        } finally {
+          setDeletingLineItem(null)
+        }
+      }
+    })
   }
 
   const handleDeletePayerMapping = async (payerId: string) => {
@@ -137,7 +146,7 @@ export default function EditTariffDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto scrollbar-hide">
           <DialogHeader>
             <div className="flex items-start justify-between">
               <div>
@@ -281,13 +290,13 @@ export default function EditTariffDialog({
                           <div className="flex items-center gap-3">
                             <div className="text-right">
                               <div className="font-semibold text-lg">
-                                {formatCurrency(item.price)}
+                                {formatCurrency(item.amount)}
                               </div>
                             </div>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteLineItem(item.id)}
+                              onClick={() => handleDeleteLineItem(item.line_item)}
                               disabled={deletingLineItem === item.id}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
@@ -335,29 +344,21 @@ export default function EditTariffDialog({
                     <div className="space-y-3">
                       {tariff.payer_mappings.map((mapping) => (
                         <div
-                          key={`${mapping.payer_id}-${mapping.id}`}
+                          key={`${mapping.payer_id}`}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
                         >
                           <div className="flex-1">
                             <div className="font-medium">{mapping.payer_name}</div>
                             <div className="text-sm text-muted-foreground">
-                              ID: {mapping.payer_id}
+                              ID: {mapping.payer_id} | Type: {mapping.payer_type}
                             </div>
-                            {(mapping.effective_from || mapping.effective_to) && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {mapping.effective_from && `From: ${formatDate(mapping.effective_from)}`}
-                                {mapping.effective_to && ` - To: ${formatDate(mapping.effective_to)}`}
-                              </div>
-                            )}
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Mapped: {formatDate(mapping.mapped_at)}
+                            </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right">
-                              {mapping.mapped_price && (
-                                <div className="font-semibold text-lg">
-                                  {formatCurrency(mapping.mapped_price)}
-                                </div>
-                              )}
-                              {getStatusBadge(mapping.status)}
+                              <Badge variant="outline">{mapping.payer_type}</Badge>
                             </div>
                             <Button
                               variant="ghost"

@@ -5,6 +5,7 @@ import Sidebar from './Sidebar'
 import BreadcrumbNavigation from './Breadcrumb'
 import { CommandPalette } from '@/components/CommandPalette'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { GlobalConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -15,6 +16,16 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false) // New state for collapsed sidebar
   const [isMobile, setIsMobile] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Load persisted sidebar state on mount
+  useEffect(() => {
+    const savedCollapsedState = localStorage.getItem('sidebarCollapsed')
+    if (savedCollapsedState !== null) {
+      setSidebarCollapsed(savedCollapsedState === 'true')
+    }
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -22,7 +33,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
       setIsMobile(mobile)
       if (mobile) {
         setSidebarOpen(false) // Close sidebar on mobile by default
-        setSidebarCollapsed(false)
       } else {
         setSidebarOpen(true) // Open sidebar on desktop by default
       }
@@ -51,7 +61,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
       setSidebarOpen(!sidebarOpen)
     } else {
       // On desktop, toggle collapsed/expanded
-      setSidebarCollapsed(!sidebarCollapsed)
+      const newCollapsedState = !sidebarCollapsed
+      setSidebarCollapsed(newCollapsedState)
+      // Persist to localStorage
+      localStorage.setItem('sidebarCollapsed', String(newCollapsedState))
     }
   }
 
@@ -79,9 +92,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
           onClose={() => setCommandPaletteOpen(false)}
         />
 
+        {/* Global Confirm Dialog */}
+        <GlobalConfirmDialog />
+
         {/* Main Content */}
         <main
-          className={`transition-all duration-300 ease-in-out bg-muted/20 ${
+          className={`transition-all duration-300 ease-in-out bg-gradient-to-br from-muted/30 via-background to-muted/20 min-h-screen ${
             isMobile
               ? 'ml-0'
               : sidebarCollapsed
@@ -91,10 +107,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
         >
           <div className="p-8">
             {/* Breadcrumb */}
-            <BreadcrumbNavigation />
+            <div className="mb-6">
+              <BreadcrumbNavigation />
+            </div>
 
             {/* Page Content */}
-            <div className="mt-8">
+            <div className="bg-white dark:bg-gray-950 rounded-2xl shadow-sm border border-border/10 p-6">
               {children}
             </div>
           </div>

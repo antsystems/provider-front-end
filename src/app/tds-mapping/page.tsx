@@ -21,6 +21,7 @@ import {
 import { tdsMappingApi } from '@/services/tdsMappingApi'
 import { TDSMapping, Pagination } from '@/types/tdsMapping'
 import { toast } from 'sonner'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Select,
   SelectContent,
@@ -42,6 +43,7 @@ export default function TDSMappingPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedMapping, setSelectedMapping] = useState<TDSMapping | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const confirmDialog = useConfirmDialog()
 
   const fetchTDSMappings = async (page = 1) => {
     try {
@@ -103,21 +105,26 @@ export default function TDSMappingPage() {
   }
 
   const handleDelete = async (mappingId: string) => {
-    if (!confirm('Are you sure you want to delete this TDS mapping? This will set its status to inactive.')) {
-      return
-    }
-
-    try {
-      setDeletingId(mappingId)
-      await tdsMappingApi.deleteTDSMapping(mappingId)
-      toast.success('TDS mapping deleted successfully')
-      fetchTDSMappings(currentPage)
-    } catch (error) {
-      console.error('Error deleting TDS mapping:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to delete TDS mapping')
-    } finally {
-      setDeletingId(null)
-    }
+    confirmDialog.open({
+      title: 'Delete TDS Mapping',
+      description: 'Are you sure you want to delete this TDS mapping? This will set its status to inactive.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          setDeletingId(mappingId)
+          await tdsMappingApi.deleteTDSMapping(mappingId)
+          toast.success('TDS mapping deleted successfully')
+          fetchTDSMappings(currentPage)
+        } catch (error) {
+          console.error('Error deleting TDS mapping:', error)
+          toast.error(error instanceof Error ? error.message : 'Failed to delete TDS mapping')
+        } finally {
+          setDeletingId(null)
+        }
+      }
+    })
   }
 
   return (

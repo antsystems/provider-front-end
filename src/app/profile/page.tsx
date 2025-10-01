@@ -51,7 +51,7 @@ function ProfilePageContent() {
     setIsMounted(true)
     if (user) {
       setEditedProfile({
-        displayName: user.displayName || user.employee_name || '',
+        displayName: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
         bio: '' // Bio not in current user type, but keeping for future extension
@@ -62,7 +62,7 @@ function ProfilePageContent() {
   const handleEdit = () => {
     if (user) {
       setEditedProfile({
-        displayName: user.displayName || user.employee_name || '',
+        displayName: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
         bio: ''
@@ -74,7 +74,7 @@ function ProfilePageContent() {
   const handleCancel = () => {
     if (user) {
       setEditedProfile({
-        displayName: user.displayName || user.employee_name || '',
+        displayName: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
         bio: ''
@@ -119,11 +119,8 @@ function ProfilePageContent() {
   }
 
   const getUserInitials = () => {
-    if (user?.employee_name) {
-      return user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    }
-    if (user?.displayName) {
-      return user.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    if (user?.name) {
+      return user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     }
     if (user?.email) {
       return user.email.slice(0, 2).toUpperCase()
@@ -132,22 +129,25 @@ function ProfilePageContent() {
   }
 
   const getUserName = () => {
-    return user?.employee_name || user?.displayName || user?.email?.split('@')[0] || 'User'
+    return user?.name || user?.email?.split('@')[0] || 'User'
   }
 
   const getRoleBadge = () => {
     const role = user?.role || 'user'
     const roleLabels = {
+      'hospital_admin': 'Hospital Administrator',
       'rm': 'Relationship Manager',
       'rp': 'Reimbursement Provider',
       'employee': 'Employee'
     }
-    return roleLabels[role as keyof typeof roleLabels] || role.toUpperCase()
+    return roleLabels[role as keyof typeof roleLabels] || role.replace('_', ' ').toUpperCase()
   }
 
   const getRoleIcon = () => {
     const role = user?.role
     switch (role) {
+      case 'hospital_admin':
+        return <Building2 size={12} className="mr-1" />
       case 'rm':
       case 'rp':
         return <Shield size={12} className="mr-1" />
@@ -261,25 +261,24 @@ function ProfilePageContent() {
                 <span>{user.phone}</span>
               </div>
             )}
-            {user.assignedEntity && (
+            {user.entity_assignments?.hospitals?.[0] && (
               <div className="flex items-center gap-3 text-sm">
                 <Building2 size={16} className="text-gray-500" />
-                <span>{user.assignedEntity.name}</span>
-              </div>
-            )}
-            {user.corporate_name && (
-              <div className="flex items-center gap-3 text-sm">
-                <Building2 size={16} className="text-gray-500" />
-                <span>{user.corporate_name}</span>
+                <div>
+                  <div>{user.entity_assignments.hospitals[0].name}</div>
+                  <div className="text-xs text-gray-400">{user.entity_assignments.hospitals[0].city}</div>
+                </div>
               </div>
             )}
             <Separator />
             <div className="text-xs text-gray-500">
-              UID: {user.uid}
+              User ID: {user.id}
             </div>
-            {user.emailVerified !== undefined && (
-              <div className="text-xs text-gray-500">
-                Email verified: {user.emailVerified ? '✅ Yes' : '❌ No'}
+            {user.status && (
+              <div className="text-xs">
+                <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                  {user.status.toUpperCase()}
+                </Badge>
               </div>
             )}
           </CardContent>
@@ -379,57 +378,46 @@ function ProfilePageContent() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="uid">User ID</Label>
-                  <div className="p-2 bg-gray-50 rounded-md font-mono text-sm">{user.uid}</div>
+                  <div className="p-2 bg-gray-50 rounded-md font-mono text-sm">{user.id}</div>
                 </div>
               </div>
 
-              {user.assignedEntity && (
+              {user.entity_assignments?.hospitals && user.entity_assignments.hospitals.length > 0 && (
                 <div className="space-y-2">
-                  <Label htmlFor="assignedEntity">Assigned Entity</Label>
-                  <div className="p-2 bg-gray-50 rounded-md">
-                    <div className="font-medium">{user.assignedEntity.name}</div>
-                    <div className="text-sm text-gray-500 capitalize">
-                      {user.assignedEntity.type} • ID: {user.assignedEntity.id}
-                    </div>
+                  <Label>Assigned Hospitals</Label>
+                  <div className="space-y-2">
+                    {user.entity_assignments.hospitals.map((hospital: any) => (
+                      <div key={hospital.id} className="p-3 bg-gray-50 rounded-md border border-gray-200">
+                        <div className="font-medium">{hospital.name}</div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin size={12} />
+                            {hospital.city}
+                          </span>
+                          <span className="mx-2">•</span>
+                          Code: {hospital.code}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">ID: {hospital.id}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {user.corporate_name && (
+              {user.roles && user.roles.length > 0 && (
                 <div className="space-y-2">
-                  <Label htmlFor="corporate">Corporate</Label>
-                  <div className="p-2 bg-gray-50 rounded-md">{user.corporate_name}</div>
+                  <Label>Assigned Roles</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {user.roles.map((role: string) => (
+                      <Badge key={role} variant="outline">
+                        {role.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Dependents (for employees) */}
-          {user.dependents && user.dependents.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users size={20} />
-                  Dependents
-                </CardTitle>
-                <CardDescription>
-                  Your registered dependents for reimbursement claims
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {user.dependents.map((dependent, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">{dependent.name}</div>
-                        <div className="text-sm text-gray-500 capitalize">{dependent.relation}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Account Settings */}
           <Card>
