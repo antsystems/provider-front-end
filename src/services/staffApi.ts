@@ -8,7 +8,6 @@ import {
   DepartmentsResponse
 } from '@/types/staff';
 import authService from '@/services/auth';
-import { getCached } from '@/services/cache';
 
 class StaffApiService {
   private baseUrl = 'https://provider-4.onrender.com/api';
@@ -27,6 +26,8 @@ class StaffApiService {
   async getStaff(filters: StaffApiFilters = {}): Promise<StaffResponse> {
     const params = new URLSearchParams();
 
+    if (filters.page) params.set('page', filters.page.toString());
+    if (filters.limit) params.set('limit', filters.limit.toString());
     if (filters.department_name) params.set('department_name', filters.department_name);
     if (filters.status) params.set('status', filters.status);
 
@@ -49,18 +50,6 @@ class StaffApiService {
       console.error('Failed to fetch staff:', error);
       throw error;
     }
-  }
-
-  async getStaffByDepartment(department: string): Promise<StaffResponse> {
-    return this.getStaff({ department_name: department });
-  }
-
-  async getActiveStaff(): Promise<StaffResponse> {
-    return this.getStaff({ status: 'active' });
-  }
-
-  async getInactiveStaff(): Promise<StaffResponse> {
-    return this.getStaff({ status: 'inactive' });
   }
 
   async createStaff(staffData: CreateStaffRequest): Promise<SingleStaffResponse> {
@@ -153,19 +142,8 @@ class StaffApiService {
     }
   }
 
-  // Reuse departments from doctors API for consistency
   async getAvailableDepartments(): Promise<DepartmentsResponse> {
-    // Try to reuse doctors API cache if available
-    const cached = getCached<{ message: string; department_names: string[]; count: number }>('doctors:available-departments')
-    if (cached) {
-      return {
-        message: cached.message,
-        departments: cached.department_names || [],
-        count: cached.count,
-      }
-    }
-
-    const url = `${this.baseUrl}/doctors/available-departments`;
+    const url = `${this.baseUrl}/staff/available-departments`;
 
     try {
       const response = await fetch(url, {
@@ -178,12 +156,8 @@ class StaffApiService {
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data: any = await response.json();
-      return {
-        message: data.message,
-        departments: data.department_names || [],
-        count: data.count
-      };
+      const data: DepartmentsResponse = await response.json();
+      return data;
     } catch (error) {
       console.error('Failed to fetch available departments:', error);
       throw error;

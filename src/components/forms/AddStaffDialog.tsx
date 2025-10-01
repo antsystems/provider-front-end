@@ -35,10 +35,13 @@ import { Users, Mail, Phone, Building } from 'lucide-react'
 import { toast } from 'sonner'
 
 const createStaffSchema = z.object({
-  staff_name: z.string().min(2, 'Staff name must be at least 2 characters'),
-  contact_number: z.string().min(10, 'Contact number must be at least 10 characters'),
+  name: z.string().min(2, 'Staff name must be at least 2 characters'),
+  phone_number: z.string().min(10, 'Phone number must be at least 10 characters'),
   email: z.string().email('Invalid email address'),
-  department_name: z.string().min(1, 'Department is required'),
+  department_id: z.string().min(1, 'Department is required'),
+  designation: z.string().min(2, 'Designation is required'),
+  qualification: z.string().min(2, 'Qualification is required'),
+  experience_years: z.number().min(0, 'Experience must be 0 or more'),
 })
 
 type CreateStaffFormValues = z.infer<typeof createStaffSchema>
@@ -55,16 +58,19 @@ export default function AddStaffDialog({
   onSuccess,
 }: AddStaffDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [departments, setDepartments] = useState<string[]>([])
+  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(false)
 
   const form = useForm<CreateStaffFormValues>({
     resolver: zodResolver(createStaffSchema),
     defaultValues: {
-      staff_name: '',
-      contact_number: '',
+      name: '',
+      phone_number: '',
       email: '',
-      department_name: '',
+      department_id: '',
+      designation: '',
+      qualification: '',
+      experience_years: 0,
     },
   })
 
@@ -74,8 +80,20 @@ export default function AddStaffDialog({
 
       setIsLoadingOptions(true)
       try {
-        const departmentsResponse = await staffApi.getAvailableDepartments()
-        setDepartments(departmentsResponse.departments)
+        const { departmentsApi } = await import('@/services/departmentsApi')
+        const departmentsResponse = await departmentsApi.getDepartments({ include_inactive: false })
+        // Map departments to have id and name, deduplicate by id
+        const deptMap = new Map<string, { id: string; name: string }>()
+        departmentsResponse.departments.forEach(dept => {
+          if (dept.department_id && dept.department_name) {
+            deptMap.set(dept.department_id, {
+              id: dept.department_id,
+              name: dept.department_name
+            })
+          }
+        })
+        const deptList = Array.from(deptMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+        setDepartments(deptList)
       } catch (error) {
         console.error('Error fetching options:', error)
         toast.error('Failed to load departments')
@@ -91,10 +109,13 @@ export default function AddStaffDialog({
     setIsLoading(true)
     try {
       const createData: CreateStaffRequest = {
-        staff_name: values.staff_name,
-        contact_number: values.contact_number,
+        name: values.name,
+        phone_number: values.phone_number,
         email: values.email,
-        department_name: values.department_name,
+        department_id: values.department_id,
+        designation: values.designation,
+        qualification: values.qualification,
+        experience_years: values.experience_years,
       }
 
       await staffApi.createStaff(createData)
@@ -141,7 +162,7 @@ export default function AddStaffDialog({
               <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
-                  name="staff_name"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Staff Name *</FormLabel>
@@ -173,10 +194,10 @@ export default function AddStaffDialog({
 
                   <FormField
                     control={form.control}
-                    name="contact_number"
+                    name="phone_number"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contact Number *</FormLabel>
+                        <FormLabel>Phone Number *</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -188,6 +209,50 @@ export default function AddStaffDialog({
                     )}
                   />
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="designation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Designation *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., Senior Doctor" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="qualification"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Qualification *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., MD, MBBS" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="experience_years"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Experience (Years) *</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" min="0" placeholder="0" onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
 
@@ -200,7 +265,7 @@ export default function AddStaffDialog({
 
               <FormField
                 control={form.control}
-                name="department_name"
+                name="department_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Department *</FormLabel>
@@ -212,8 +277,8 @@ export default function AddStaffDialog({
                       </FormControl>
                       <SelectContent>
                         {departments?.map((department) => (
-                          <SelectItem key={department} value={department}>
-                            {department}
+                          <SelectItem key={department.id} value={department.id}>
+                            {department.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

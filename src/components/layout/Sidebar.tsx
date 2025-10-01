@@ -7,21 +7,12 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   LayoutDashboard,
-  FileText,
   UserCheck,
-  Building,
-  CreditCard,
-  BarChart3,
-  Settings,
   ChevronDown,
   ChevronRight,
   Stethoscope,
-  Bed,
-  Receipt,
   Users,
-  Shield,
   LucideIcon,
-  Bell,
   User,
   LogOut,
   Menu,
@@ -31,9 +22,7 @@ import {
   Percent
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,6 +55,11 @@ const navigationItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
+    title: 'Departments',
+    href: '/departments',
+    icon: Building2,
+  },
+  {
     title: 'Doctors',
     href: '/doctors',
     icon: Stethoscope,
@@ -74,11 +68,6 @@ const navigationItems: NavItem[] = [
     title: 'Staff',
     href: '/staff',
     icon: Users,
-  },
-  {
-    title: 'Departments',
-    href: '/departments',
-    icon: Building2,
   },
   {
     title: 'Hospital Users',
@@ -345,25 +334,6 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
           )}>
             {!isMounted || !isCollapsed ? (
               <div className="space-y-3">
-                {/* Notifications */}
-                <div className="relative">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start h-10 px-3"
-                  >
-                    <Bell className="w-4 h-4 mr-3" />
-                    Notifications
-                    <Badge
-                      variant="destructive"
-                      className="ml-auto h-5 w-5 p-0 flex items-center justify-center text-xs"
-                    >
-                      3
-                    </Badge>
-                  </Button>
-                </div>
-
-                <Separator />
-
                 {/* User Profile */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -420,11 +390,6 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                       </DropdownMenuItem>
                     </Link>
 
-                    <DropdownMenuItem>
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Account Settings</span>
-                    </DropdownMenuItem>
-
                     <DropdownMenuSeparator />
 
                     <DropdownMenuItem
@@ -439,33 +404,19 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
               </div>
             ) : isMounted ? (
               <div className="space-y-2">
-                {/* Collapsed Notifications */}
-                <div className="relative flex justify-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 relative"
-                    title="Notifications"
-                  >
-                    <Bell className="w-5 h-5" />
-                    <Badge
-                      variant="destructive"
-                      className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs"
-                    >
-                      3
-                    </Badge>
-                  </Button>
-                </div>
-
                 {/* Collapsed User Profile */}
                 <div className="flex justify-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-10 w-10" title="Profile">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src="/avatars/doctor.jpg" alt="Dr. Smith" />
                           <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                            DS
+                            {user?.employee_name
+                              ? user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                              : user?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                              || user?.email?.slice(0, 2).toUpperCase()
+                              || 'U'
+                            }
                           </AvatarFallback>
                         </Avatar>
                       </Button>
@@ -475,12 +426,21 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                       <div className="flex items-center gap-2 p-2">
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            DS
+                            {user?.employee_name
+                              ? user.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                              : user?.displayName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                              || user?.email?.slice(0, 2).toUpperCase()
+                              || 'U'
+                            }
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium">Dr. Smith</p>
-                          <p className="text-xs text-muted-foreground">smith@medverve.com</p>
+                          <p className="text-sm font-medium">
+                            {user?.employee_name || user?.displayName || user?.email?.split('@')[0] || 'User'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {user?.email || user?.phone || 'No contact info'}
+                          </p>
                         </div>
                       </div>
 
@@ -492,11 +452,6 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                           <span>Profile Settings</span>
                         </DropdownMenuItem>
                       </Link>
-
-                      <DropdownMenuItem>
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Account Settings</span>
-                      </DropdownMenuItem>
 
                       <DropdownMenuSeparator />
 

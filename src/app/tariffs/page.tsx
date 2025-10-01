@@ -13,13 +13,15 @@ import {
   Calendar,
   DollarSign,
   Filter,
-  Eye
+  Eye,
+  Upload
 } from 'lucide-react'
 import { tariffsApi } from '@/services/tariffsApi'
 import { Tariff } from '@/types/tariffs'
 import { toast } from 'sonner'
 import EditTariffDialog from '@/components/forms/EditTariffDialog'
 import AddTariffDialog from '@/components/forms/AddTariffDialog'
+import BulkUploadTariffDialog from '@/components/forms/BulkUploadTariffDialog'
 
 export default function TariffsPage() {
   const [tariffs, setTariffs] = useState<Tariff[]>([])
@@ -29,6 +31,7 @@ export default function TariffsPage() {
   const [selectedTariff, setSelectedTariff] = useState<Tariff | null>(null)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [bulkUploadDialogOpen, setBulkUploadDialogOpen] = useState(false)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -110,6 +113,10 @@ export default function TariffsPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setBulkUploadDialogOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Bulk Upload
+            </Button>
             <Button onClick={() => setAddDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Add Tariff
@@ -305,6 +312,13 @@ export default function TariffsPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Bulk Upload Dialog */}
+        <BulkUploadTariffDialog
+          open={bulkUploadDialogOpen}
+          onOpenChange={setBulkUploadDialogOpen}
+          onSuccess={() => fetchTariffs(1)}
+        />
 
         {/* Add Tariff Dialog */}
         <AddTariffDialog

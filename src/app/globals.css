@@ -66,8 +66,12 @@
   }
 
   body {
-    @apply bg-background text-foreground font-['Inter',sans-serif];
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-manrope), sans-serif;
   }
 
   html {

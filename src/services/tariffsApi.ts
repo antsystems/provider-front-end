@@ -12,6 +12,7 @@ import {
   UpdateLineItemRequest,
   UpdateLineItemResponse,
   DeleteLineItemResponse,
+  BulkLineItemsUploadResponse,
   CreatePayerMappingRequest,
   CreatePayerMappingResponse,
   BulkCreatePayerMappingsRequest,
@@ -293,6 +294,47 @@ class TariffsApiService {
       return data;
     } catch (error) {
       console.error('Failed to delete line item:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk upload line items from CSV or JSON file
+   */
+  async bulkUploadLineItems(file: File): Promise<BulkLineItemsUploadResponse> {
+    const url = `${this.baseUrl}/tariffs/bulk-upload`;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const token = authService.getCurrentToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data: BulkLineItemsUploadResponse = await response.json();
+
+      // Clear tariffs cache
+      this.clearTariffsCache();
+
+      return data;
+    } catch (error) {
+      console.error('Failed to bulk upload line items:', error);
       throw error;
     }
   }

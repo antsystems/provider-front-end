@@ -137,6 +137,27 @@ export interface DeleteLineItemResponse {
   message: string
 }
 
+export interface BulkLineItemCSVRow {
+  tariff_name: string
+  code: string
+  line_item: string
+  price: number
+  description?: string
+}
+
+export interface BulkLineItemRequest {
+  tariff_name: string
+  line_items: CreateLineItemRequest[]
+}
+
+export interface BulkLineItemsUploadResponse {
+  message: string
+  successful?: number
+  failed?: number
+  created_tariffs?: string[]
+  errors?: Array<{ row: number; error: string }>
+}
+
 // Payer Mapping Types
 export interface CreatePayerMappingRequest {
   payer_id: string

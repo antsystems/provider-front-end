@@ -142,7 +142,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       }
     },
     {
-      accessorKey: 'staff_name',
+      accessorKey: 'name',
       header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent">
           Staff Member
@@ -156,7 +156,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
           </div>
           <div>
             <div className="font-medium text-foreground hover:text-primary cursor-pointer transition-colors">
-              {row.getValue('staff_name')}
+              {row.getValue('name')}
             </div>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Mail className="h-3 w-3" />
@@ -167,7 +167,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       )
     },
     {
-      accessorKey: 'department_name',
+      accessorKey: 'department',
       header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent">
           Department
@@ -176,18 +176,41 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       ),
       cell: ({ row }) => (
         <Badge variant="outline" className="bg-purple-50 text-purple-700">
-          {row.getValue('department_name')}
+          {row.getValue('department')}
         </Badge>
       )
     },
     {
-      accessorKey: 'contact_number',
+      accessorKey: 'designation',
+      header: 'Designation',
+      cell: ({ row }) => (
+        <div className="text-sm font-medium">
+          {row.getValue('designation')}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'phone_number',
       header: 'Contact',
       cell: ({ row }) => (
         <div className="flex items-center gap-1 text-sm">
           <Phone className="h-3 w-3 text-gray-400" />
-          {row.getValue('contact_number')}
+          {row.getValue('phone_number')}
         </div>
+      )
+    },
+    {
+      accessorKey: 'qualification',
+      header: 'Qualification',
+      cell: ({ row }) => (
+        <div className="text-sm">{row.getValue('qualification')}</div>
+      )
+    },
+    {
+      accessorKey: 'experience_years',
+      header: 'Experience',
+      cell: ({ row }) => (
+        <div className="text-sm">{row.getValue('experience_years')} years</div>
       )
     },
     {
@@ -206,11 +229,11 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       }
     },
     {
-      accessorKey: 'updated_on',
+      accessorKey: 'updated_at',
       header: 'Last Updated',
       cell: ({ row }) => {
-        const updatedTime = row.getValue('updated_on') as string
-        return <div className="text-muted-foreground">{formatDate(updatedTime)}</div>
+        const updatedTime = row.getValue('updated_at') as string
+        return <div className="text-muted-foreground text-sm">{formatDate(updatedTime)}</div>
       },
       meta: {
         displayName: 'Last Updated'
@@ -239,7 +262,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
                 View/Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDeleteStaff(staff.staff_id)}
+                onClick={() => handleDeleteStaff(staff.id)}
                 className="flex items-center gap-2 text-red-600 focus:text-red-600"
               >
                 <Trash2 className="h-4 w-4" />
@@ -247,7 +270,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        ) 
       }
     }
   ]
@@ -295,13 +318,14 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
         <DataTable
           columns={columns}
           data={staff}
-          searchKey="staff_name"
+          searchKey="name"
           searchPlaceholder="Search by staff name..."
           showColumnToggle={true}
           showPagination={true}
           initialColumnVisibility={{
             staff_id: false,
-            updated_on: false
+            experience_years: false,
+            updated_at: false
           }}
         />
       </div>

@@ -6,7 +6,7 @@ import { StaffTable } from '@/components/tables/StaffTable'
 import { staffApi } from '@/services/staffApi'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, RefreshCw, Filter, Download, Users } from 'lucide-react'
+import { AlertCircle, RefreshCw, Filter, Download, Users, ChevronsUpDown, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -15,14 +15,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 export default function StaffPage() {
   const [allStaff, setAllStaff] = useState<Staff[]>([]) // All staff from API
-  const [filteredStaff, setFilteredStaff] = useState<Staff[]>([]) // Filtered results
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
   const [filters, setFilters] = useState<{
     department_name?: string
     status?: 'active' | 'inactive'
@@ -30,18 +46,27 @@ export default function StaffPage() {
   }>({})
   const [departments, setDepartments] = useState<string[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(false)
+  const [openDepartment, setOpenDepartment] = useState(false)
 
-  const fetchAllStaff = async () => {
+  const fetchAllStaff = async (page: number = 1) => {
     try {
       setLoading(true)
       setError(null)
 
-      // Fetch all staff without any filters
-      const response = await staffApi.getStaff()
-      setAllStaff(response.staff)
-      setFilteredStaff(response.staff) // Initially show all
+      // Fetch staff with pagination and filters
+      const response = await staffApi.getStaff({
+        page,
+        limit: 100,
+        department_name: filters.department_name,
+        status: filters.status,
+      })
 
-      toast.success(`${response.count} staff members loaded successfully`)
+      setAllStaff(response.staff)
+      setCurrentPage(response.pagination.current_page)
+      setTotalPages(response.pagination.total_pages)
+      setTotalItems(response.pagination.total_items)
+
+      toast.success(`${response.pagination.total_items} staff members loaded successfully`)
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch staff'
@@ -57,79 +82,66 @@ export default function StaffPage() {
   const fetchFilterOptions = async () => {
     setIsLoadingOptions(true)
     try {
-      const departmentsResponse = await staffApi.getAvailableDepartments()
-      setDepartments(departmentsResponse.departments)
+      const response = await staffApi.getAvailableDepartments()
+      setDepartments(response.departments || [])
     } catch (error) {
-      console.error('Error fetching filter options:', error)
+      console.error('Error fetching available departments:', error)
+      toast.error('Failed to load departments')
     } finally {
       setIsLoadingOptions(false)
     }
   }
 
-  // Client-side filtering logic
-  const applyFilters = () => {
-    let filtered = [...allStaff]
+  // Get filtered staff for display (client-side search only)
+  const getFilteredStaff = () => {
+    if (!filters.search) return allStaff
 
-    // Apply department filter
-    if (filters.department_name && filters.department_name !== 'all') {
-      filtered = filtered.filter(staff =>
-        staff.department_name?.toLowerCase().includes(filters.department_name!.toLowerCase())
-      )
-    }
-
-    // Apply status filter
-    if (filters.status && filters.status !== 'all') {
-      filtered = filtered.filter(staff => staff.status === filters.status)
-    }
-
-    // Apply search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase()
-      filtered = filtered.filter(staff =>
-        staff.staff_name?.toLowerCase().includes(searchLower) ||
-        staff.email?.toLowerCase().includes(searchLower) ||
-        staff.contact_number?.toLowerCase().includes(searchLower) ||
-        staff.department_name?.toLowerCase().includes(searchLower)
-      )
-    }
-
-    setFilteredStaff(filtered)
+    const searchLower = filters.search.toLowerCase()
+    return allStaff.filter(staff =>
+      staff.name?.toLowerCase().includes(searchLower) ||
+      staff.email?.toLowerCase().includes(searchLower) ||
+      staff.phone_number?.toLowerCase().includes(searchLower) ||
+      staff.department?.toLowerCase().includes(searchLower) ||
+      staff.designation?.toLowerCase().includes(searchLower) ||
+      staff.staff_id?.toLowerCase().includes(searchLower)
+    )
   }
 
-  // Apply filters whenever filters or allStaff change
-  useEffect(() => {
-    applyFilters()
-  }, [filters, allStaff])
+  const filteredStaff = getFilteredStaff()
 
-  // Initial load
+  // Fetch filter options on mount
   useEffect(() => {
-    fetchAllStaff()
     fetchFilterOptions()
   }, [])
 
+  // Fetch staff on mount and when filters change
+  useEffect(() => {
+    fetchAllStaff(1)
+  }, [filters.department_name, filters.status])
+
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    const updatedFilters = { ...filters, ...newFilters }
-    setFilters(updatedFilters)
-    // No API call needed - useEffect will handle filtering
+    setFilters(prev => ({ ...prev, ...newFilters }))
   }
 
   const handleClearFilters = () => {
     setFilters({})
-    // No API call needed - useEffect will handle filtering
   }
 
   const handleExportStaff = () => {
     try {
       // Export filtered results
-      const headers = ['Staff ID', 'Staff Name', 'Email', 'Contact Number', 'Department', 'Status']
+      const headers = ['Staff ID', 'Name', 'Email', 'Phone Number', 'Department', 'Designation', 'Qualification', 'Experience (Years)', 'Status']
       const csvContent = [
         headers.join(','),
         ...filteredStaff.map(staff => [
           staff.staff_id,
-          `"${staff.staff_name}"`,
+          `"${staff.name}"`,
           staff.email,
-          staff.contact_number,
-          `"${staff.department_name}"`,
+          staff.phone_number,
+          `"${staff.department}"`,
+          `"${staff.designation}"`,
+          `"${staff.qualification}"`,
+          staff.experience_years,
           staff.status
         ].join(','))
       ].join('\n')
@@ -150,7 +162,7 @@ export default function StaffPage() {
   }
 
   const handleRefresh = () => {
-    fetchAllStaff()
+    fetchAllStaff(currentPage)
   }
 
   const handleStaffUpdate = (updatedStaff: Staff) => {
@@ -256,23 +268,65 @@ export default function StaffPage() {
               className="w-full"
             />
 
-            <Select
-              value={filters.department_name || 'all'}
-              onValueChange={(value) => handleFilterChange({ department_name: value === 'all' ? undefined : value })}
-              disabled={isLoadingOptions}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={isLoadingOptions ? "Loading..." : "Select Department"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {departments?.map((department) => (
-                  <SelectItem key={department} value={department}>
-                    {department}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openDepartment}
+                  className="w-full justify-between"
+                  disabled={isLoadingOptions}
+                >
+                  {filters.department_name
+                    ? departments.find((dept) => dept === filters.department_name)
+                    : isLoadingOptions ? "Loading..." : "Select Department"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search department..." />
+                  <CommandList>
+                    <CommandEmpty>No department found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          handleFilterChange({ department_name: undefined })
+                          setOpenDepartment(false)
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            !filters.department_name ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        All Departments
+                      </CommandItem>
+                      {departments.map((department) => (
+                        <CommandItem
+                          key={department}
+                          value={department}
+                          onSelect={(currentValue) => {
+                            handleFilterChange({ department_name: currentValue })
+                            setOpenDepartment(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              filters.department_name === department ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {department}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
             <Select
               value={filters.status || 'all'}

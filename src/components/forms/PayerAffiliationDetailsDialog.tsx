@@ -39,7 +39,7 @@ import { toast } from 'sonner'
 
 const formSchema = z.object({
   status: z.enum(['active', 'inactive'], {
-    required_error: 'Status is required',
+    error: 'Status is required',
   }),
 })
 
