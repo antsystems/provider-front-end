@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CreateTariffRequest } from '@/types/tariffs'
 import { tariffsApi } from '@/services/tariffsApi'
-import { FileText, Calendar, Plus, Trash2, DollarSign } from 'lucide-react'
+import { FileText, Calendar, Plus, Trash2, IndianRupee } from 'lucide-react'
 import { toast } from 'sonner'
 
 const lineItemSchema = z.object({
@@ -243,7 +243,7 @@ export default function AddTariffDialog({
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
+                    <IndianRupee className="h-5 w-5" />
                     Line Items ({fields.length})
                   </CardTitle>
                   <Button
@@ -313,7 +313,7 @@ export default function AddTariffDialog({
                             <FormLabel>Amount *</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   {...field}
                                   type="number"

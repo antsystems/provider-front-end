@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CreateLineItemRequest } from '@/types/tariffs'
 import { tariffsApi } from '@/services/tariffsApi'
-import { DollarSign, FileText } from 'lucide-react'
+import { IndianRupee, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 
 const lineItemSchema = z.object({
@@ -142,7 +142,7 @@ export default function AddLineItemDialog({
                   <FormLabel>Amount *</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         {...field}
                         type="number"

@@ -26,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     const total = payload.reduce((sum: number, item: any) => sum + item.value, 0)
 
     return (
-      <div className="glass-card border-0 shadow-lg p-4 rounded-xl">
+      <div className="glass-card border-0 shadow-sm p-4 rounded-xl">
         <p className="text-sm font-medium text-muted-foreground mb-2">{label}</p>
         <div className="space-y-1">
           {payload.map((entry: any, index: number) => (

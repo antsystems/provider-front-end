@@ -18,8 +18,9 @@ import {
   Menu,
   HandCoins,
   Building2,
-  DollarSign,
-  Percent
+  IndianRupee,
+  Percent,
+  Activity
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -47,6 +48,7 @@ interface NavItem {
   icon: LucideIcon
   badge?: string
   children?: NavItem[]
+  divider?: boolean // Add divider after this item
 }
 
 const navigationItems: NavItem[] = [
@@ -54,11 +56,7 @@ const navigationItems: NavItem[] = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
-  },
-  {
-    title: 'Departments',
-    href: '/departments',
-    icon: Building2,
+    divider: true,
   },
   {
     title: 'Doctors',
@@ -74,6 +72,12 @@ const navigationItems: NavItem[] = [
     title: 'Hospital Users',
     href: '/users',
     icon: UserCheck,
+    divider: true,
+  },
+  {
+    title: 'Departments',
+    href: '/departments',
+    icon: Building2,
   },
   {
     title: 'Payer Affiliations',
@@ -81,14 +85,20 @@ const navigationItems: NavItem[] = [
     icon: HandCoins,
   },
   {
+    title: 'Specialty Affiliations',
+    href: '/specialties',
+    icon: Activity,
+  },
+  {
     title: 'Tariffs',
     href: '/tariffs',
-    icon: DollarSign,
+    icon: IndianRupee,
   },
   {
     title: 'TDS Mapping',
     href: '/tds-mapping',
     icon: Percent,
+     divider: true,
   },
   {
     title: 'Profile',
@@ -143,8 +153,8 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
               asChild
               className={cn(
                 "w-full h-12 hover-lift rounded-xl transition-all duration-200 justify-center px-3 group",
-                "hover:bg-primary/10 hover:shadow-sm border border-transparent",
-                active && "bg-primary/90 shadow-md"
+                "hover:bg-primary/10 hover:shadow-none border border-transparent",
+                active && "bg-primary/90 shadow-sm"
               )}
               title={item.title}
             >
@@ -164,8 +174,8 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                 onClick={() => toggleExpanded(item.title)}
                 className={cn(
                   "w-full h-12 hover-lift rounded-xl transition-all duration-200 justify-between px-4 group",
-                  "hover:bg-primary/10 hover:shadow-sm",
-                  active && "bg-primary/90 shadow-md",
+                  "hover:bg-primary/10 hover:shadow-none",
+                  active && "bg-primary/90 shadow-sm",
                   level > 0 && "ml-4"
                 )}
               >
@@ -211,8 +221,8 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
         asChild
         className={cn(
           "w-full h-12 mb-1 hover-lift rounded-xl transition-all duration-200 group",
-          "hover:bg-primary/10 hover:shadow-sm border border-transparent",
-          active && "bg-primary/90 shadow-md",
+          "hover:bg-primary/10 hover:shadow-none border border-transparent",
+          active && "bg-primary/90 shadow-sm",
           isCollapsed
             ? "justify-center px-3"
             : "justify-start px-4",
@@ -251,7 +261,7 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
           variant="default"
           size="icon"
           onClick={onToggle}
-          className="fixed top-4 left-4 z-50 lg:hidden h-12 w-12 rounded-full shadow-lg hover:scale-105 transition-all duration-200"
+          className="fixed top-4 left-4 z-50 lg:hidden h-12 w-12 rounded-full shadow-sm hover:scale-105 transition-all duration-200"
           title="Open sidebar"
         >
           <Menu size={20} />
@@ -269,7 +279,7 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen bg-white dark:bg-gray-950 border-r border-border/10 shadow-xl",
+          "fixed top-0 left-0 z-40 h-screen bg-white dark:bg-gray-950 border-r border-border shadow-none",
           "transform transition-all duration-300 ease-in-out",
           // Ensure consistent hydration by using safe defaults
           !isMounted && "translate-x-0 w-64", // Default state during SSR
@@ -283,7 +293,7 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
         <div className="flex flex-col h-full">
           {/* Logo Header with Integrated Toggle */}
           <div className={cn(
-            "flex items-center justify-between border-b border-border/10 bg-gradient-to-r from-primary/5 to-accent/5 transition-all duration-300 group",
+            "flex items-center justify-between border-b border-border bg-muted/30 transition-all duration-300",
             !isMounted && "px-4 py-4", // Default state during SSR
             isMounted && (isCollapsed ? "px-3 py-3 flex-col gap-3" : "px-4 py-4")
           )}>
@@ -301,11 +311,10 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
                     />
                   </div>
                   <div>
-                    <h1 className="text-lg font-bold leading-tight">
-                      <span className="text-primary">Med</span>
-                      <span className="text-accent">verve</span>
+                    <h1 className="text-lg font-bold leading-tight text-foreground">
+                      Medverve
                     </h1>
-                    <p className="text-xs text-muted-foreground leading-tight">Provider Portal</p>
+                    <p className="text-xs text-muted-foreground leading-tight">Admin Portal</p>
                   </div>
                 </div>
                 <Button
@@ -350,15 +359,20 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
             isMounted && (isCollapsed ? "px-2" : "px-4")
           )}>
             <div className="space-y-2">
-              {navigationItems.map((item) => (
-                <NavItemComponent key={item.title} item={item} />
+              {navigationItems.map((item, index) => (
+                <div key={item.title}>
+                  <NavItemComponent item={item} />
+                  {item.divider && (
+                    <div className="my-2 border-t border-border" />
+                  )}
+                </div>
               ))}
             </div>
           </nav>
 
           {/* User Section */}
           <div className={cn(
-            "border-t border-border/10 bg-gradient-to-r from-muted/20 to-muted/10 transition-all duration-300",
+            "border-t border-border bg-muted/30 transition-all duration-300",
             !isMounted && "px-4 py-4", // Default state during SSR
             isMounted && (isCollapsed ? "px-2 py-3" : "px-4 py-4")
           )}>

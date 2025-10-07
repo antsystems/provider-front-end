@@ -12,7 +12,7 @@ import {
   Filter,
   Percent,
   Building,
-  DollarSign,
+  IndianRupee,
   Calendar,
   User,
   Edit2,
@@ -161,7 +161,7 @@ export default function TDSMappingPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-500" />
+              <IndianRupee className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -172,7 +172,7 @@ export default function TDSMappingPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Inactive</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <IndianRupee className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -245,7 +245,7 @@ export default function TDSMappingPage() {
         ) : (
           <div className="grid gap-4">
             {filteredTdsMappings.map((mapping) => (
-              <Card key={mapping.id} className="hover:shadow-lg transition-shadow">
+              <Card key={mapping.id} className="hover:shadow-sm transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-3">
@@ -259,7 +259,7 @@ export default function TDSMappingPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          <IndianRupee className="h-4 w-4 text-muted-foreground" />
                           <div>
                             <div className="text-xs text-muted-foreground">Payer</div>
                             <div className="font-semibold">{mapping.payer_name}</div>

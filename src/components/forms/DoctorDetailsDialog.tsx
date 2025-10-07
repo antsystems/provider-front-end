@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/select'
 import { Doctor, UpdateDoctorRequest } from '@/types/doctors'
 import { doctorsApi } from '@/services/doctorsApi'
-import { Stethoscope, Mail, Phone, User, Building2, Calendar, DollarSign, Clock, GraduationCap } from 'lucide-react'
+import { Stethoscope, Mail, Phone, User, Building2, Calendar, IndianRupee, Clock, GraduationCap } from 'lucide-react'
 import { toast } from 'sonner'
 
 const doctorFormSchema = z.object({
@@ -195,7 +195,7 @@ export default function DoctorDetailsDialog({
                 <span>{doctor.experience_years ? `${doctor.experience_years} years` : 'N/A'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <IndianRupee className="h-4 w-4 text-muted-foreground" />
                 <span>{doctor.consultation_fee ? `₹${doctor.consultation_fee}` : 'N/A'}</span>
               </div>
               <div className="flex items-center gap-2">

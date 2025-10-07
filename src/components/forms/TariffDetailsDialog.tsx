@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   FileText,
   Calendar,
-  DollarSign,
+  IndianRupee,
   Building,
   User,
   MapPin,
@@ -141,7 +141,7 @@ export default function TariffDetailsDialog({
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
+                <IndianRupee className="h-5 w-5" />
                 Line Items ({tariff.line_items.length})
               </CardTitle>
             </CardHeader>

@@ -14,7 +14,7 @@ const CustomTooltip = memo(({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload
     return (
-      <div className="glass-card border-0 shadow-lg p-4 rounded-xl">
+      <div className="glass-card border-0 shadow-sm p-4 rounded-xl">
         <div className="flex items-center gap-2 mb-2">
           <div
             className="w-3 h-3 rounded-full"
@@ -46,7 +46,7 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent
       fill="white"
       textAnchor={x > cx ? 'start' : 'end'}
       dominantBaseline="central"
-      className="text-xs font-semibold drop-shadow-sm"
+      className="text-xs font-semibold drop-shadow-none"
     >
       {`${(percent * 100).toFixed(0)}%`}
     </text>

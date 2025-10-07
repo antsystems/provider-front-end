@@ -20,7 +20,7 @@ import {
 import {
   FileText,
   Calendar,
-  DollarSign,
+  IndianRupee,
   Building,
   User,
   MapPin,
@@ -241,7 +241,7 @@ export default function EditTariffDialog({
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <DollarSign className="h-5 w-5" />
+                      <IndianRupee className="h-5 w-5" />
                       Line Items ({tariff.line_items.length})
                     </CardTitle>
                     <Button size="sm" onClick={() => setAddLineItemOpen(true)}>
@@ -253,7 +253,7 @@ export default function EditTariffDialog({
                 <CardContent>
                   {tariff.line_items.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
-                      <DollarSign className="mx-auto h-12 w-12 mb-4 opacity-20" />
+                      <IndianRupee className="mx-auto h-12 w-12 mb-4 opacity-20" />
                       <p>No line items found</p>
                       <Button
                         variant="outline"

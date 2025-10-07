@@ -37,7 +37,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CreateDoctorRequest } from '@/types/doctors'
 import { doctorsApi } from '@/services/doctorsApi'
-import { Stethoscope, Mail, Phone, GraduationCap, Clock, DollarSign, Users, Building, ChevronsUpDown, Check } from 'lucide-react'
+import { Stethoscope, Mail, Phone, GraduationCap, Clock, IndianRupee, Users, Building, ChevronsUpDown, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -411,7 +411,7 @@ export default function AddDoctorDialog({
                         <FormLabel>Consultation Fee</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                            <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                             <Input
                               {...field}
                               type="number"

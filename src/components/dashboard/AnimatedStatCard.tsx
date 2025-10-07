@@ -23,7 +23,7 @@ export const AnimatedStatCard = memo(function AnimatedStatCard({
   const animatedValue = useCounterAnimation(value, 800, index * 150)
 
   return (
-    <Card className="glass-card hover-lift border-0 shadow-sm">
+    <Card className="glass-card hover-lift border-0 shadow-none">
       <CardContent className="p-8">
         <div className="flex items-center justify-between">
           <div className="space-y-2">

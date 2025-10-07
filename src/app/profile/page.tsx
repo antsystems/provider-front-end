@@ -232,7 +232,7 @@ function ProfilePageContent() {
                 </AvatarFallback>
               </Avatar>
               {isEditing && (
-                <button className="absolute -bottom-1 -right-1 p-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-colors">
+                <button className="absolute -bottom-1 -right-1 p-2 bg-primary text-white rounded-full shadow-sm hover:bg-primary/90 transition-colors">
                   <Camera size={14} />
                 </button>
               )}
@@ -266,7 +266,7 @@ function ProfilePageContent() {
                 <Building2 size={16} className="text-gray-500" />
                 <div>
                   <div>{user.entity_assignments.hospitals[0].name}</div>
-                  <div className="text-xs text-gray-400">{user.entity_assignments.hospitals[0].city}</div>
+                  <div className="text-xs text-gray-400">{user.entity_assignments.hospitals[0]?.city}</div>
                 </div>
               </div>
             )}

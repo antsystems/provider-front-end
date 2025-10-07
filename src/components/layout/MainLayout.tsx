@@ -97,7 +97,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
         {/* Main Content */}
         <main
-          className={`transition-all duration-300 ease-in-out bg-gradient-to-br from-muted/30 via-background to-muted/20 min-h-screen ${
+          className={`transition-all duration-300 ease-in-out bg-muted/30 min-h-screen ${
             isMobile
               ? 'ml-0'
               : sidebarCollapsed
@@ -105,14 +105,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 : 'lg:ml-64'
           }`}
         >
-          <div className="p-8">
+          <div className="p-6">
             {/* Breadcrumb */}
-            <div className="mb-6">
+            <div className="mb-4">
               <BreadcrumbNavigation />
             </div>
 
             {/* Page Content */}
-            <div className="bg-white dark:bg-gray-950 rounded-2xl shadow-sm border border-border/10 p-6">
+            <div className="bg-white dark:bg-gray-950 rounded-lg shadow-none border border-border p-6">
               {children}
             </div>
           </div>

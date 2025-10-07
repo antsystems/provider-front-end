@@ -11,7 +11,7 @@ import {
   Search,
   FileText,
   Calendar,
-  DollarSign,
+  IndianRupee,
   Filter,
   Eye,
   Upload
@@ -149,7 +149,7 @@ export default function TariffsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Line Items</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <IndianRupee className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -160,7 +160,7 @@ export default function TariffsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Payer Mappings</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <IndianRupee className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -228,7 +228,7 @@ export default function TariffsPage() {
                   </thead>
                   <tbody>
                     {filteredTariffs.map((tariff) => (
-                      <tr key={tariff.id} className="border-b hover:bg-muted/50">
+                      <tr key={tariff.tariff_id} className="border-b hover:bg-muted/50">
                         <td className="py-3 px-4">
                           <div className="font-mono text-sm">{tariff.tariff_id}</div>
                         </td>

@@ -20,6 +20,12 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Medverve",
   description: "Medverve",
+  icons: {
+    icon: [
+      { url: "/assets/logo.png" },
+    ],
+    apple: "/assets/logo.png",
+  },
 };
 
 export default function RootLayout({

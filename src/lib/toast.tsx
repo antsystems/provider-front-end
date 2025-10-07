@@ -25,7 +25,7 @@ export const toast = {
         : undefined,
       classNames: {
         toast:
-          'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:border-green-200 group-[.toaster]:shadow-lg',
+          'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:border-green-200 group-[.toaster]:shadow-sm',
         title: 'group-[.toast]:text-green-900 group-[.toast]:font-semibold',
         description: 'group-[.toast]:text-green-700',
       },
@@ -45,7 +45,7 @@ export const toast = {
         : undefined,
       classNames: {
         toast:
-          'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:border-red-200 group-[.toaster]:shadow-lg',
+          'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:border-red-200 group-[.toaster]:shadow-sm',
         title: 'group-[.toast]:text-red-900 group-[.toast]:font-semibold',
         description: 'group-[.toast]:text-red-700',
       },
@@ -65,7 +65,7 @@ export const toast = {
         : undefined,
       classNames: {
         toast:
-          'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:border-yellow-200 group-[.toaster]:shadow-lg',
+          'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:border-yellow-200 group-[.toaster]:shadow-sm',
         title: 'group-[.toast]:text-yellow-900 group-[.toast]:font-semibold',
         description: 'group-[.toast]:text-yellow-700',
       },
@@ -85,7 +85,7 @@ export const toast = {
         : undefined,
       classNames: {
         toast:
-          'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:border-blue-200 group-[.toaster]:shadow-lg',
+          'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:border-blue-200 group-[.toaster]:shadow-sm',
         title: 'group-[.toast]:text-blue-900 group-[.toast]:font-semibold',
         description: 'group-[.toast]:text-blue-700',
       },
@@ -96,7 +96,7 @@ export const toast = {
     return sonnerToast.loading(message, {
       description: options?.description,
       classNames: {
-        toast: 'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:shadow-lg',
+        toast: 'group-[.toaster]:bg-white group-[.toaster]:text-foreground group-[.toaster]:shadow-sm',
       },
     })
   },

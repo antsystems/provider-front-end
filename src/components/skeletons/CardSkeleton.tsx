@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export function CardSkeleton() {
   return (
-    <Card className="glass-card border-0 shadow-sm">
+    <Card className="glass-card border-0 shadow-none">
       <CardContent className="p-8">
         <div className="flex items-center justify-between">
           <div className="space-y-2 flex-1">
@@ -30,7 +30,7 @@ export function StatCardsSkeleton({ count = 4 }: { count?: number }) {
 
 export function DetailCardSkeleton() {
   return (
-    <Card className="glass-card border-0 shadow-sm">
+    <Card className="glass-card border-0 shadow-none">
       <CardHeader>
         <Skeleton className="h-6 w-[200px] mb-2" shimmer />
         <Skeleton className="h-4 w-[300px]" shimmer />

@@ -127,7 +127,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Table */}
-      <Card className="glass-card border-0 shadow-sm">
+      <Card className="glass-card border-0 shadow-none">
         <div className="rounded-xl overflow-hidden">
           <Table>
             <TableHeader>
