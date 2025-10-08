@@ -320,6 +320,7 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
           searchPlaceholder="Search by user name..."
           showColumnToggle={true}
           showPagination={true}
+          loading={loading}
           initialColumnVisibility={{
             user_id: false,
             updated_on: false

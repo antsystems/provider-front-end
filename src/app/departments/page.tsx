@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Building2, FileText, TrendingUp, Download, Filter, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
+import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
 
 export default function DepartmentsPage() {
   const { user } = useAuth()
@@ -158,6 +159,10 @@ export default function DepartmentsPage() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {loading ? (
+            <StatsCardSkeleton count={3} />
+          ) : (
+            <>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Departments</CardTitle>
@@ -196,7 +201,8 @@ export default function DepartmentsPage() {
               </p>
             </CardContent>
           </Card>
-
+            </>
+          )}
         </div>
 
         {/* Filters */}

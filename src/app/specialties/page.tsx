@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Stethoscope, Search, CheckCircle2, Circle, RotateCcw, ListFilter, X, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
 import { SpecialtyMultiSelect } from '@/components/specialty/SpecialtyMultiSelect'
 import { VirtualizedSpecialtyList } from '@/components/specialty/VirtualizedSpecialtyList'
 import {
@@ -215,6 +216,10 @@ export default function SpecialtiesPage() {
 
         {/* Statistics Card */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {loading ? (
+            <StatsCardSkeleton count={3} />
+          ) : (
+            <>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Specialties</CardTitle>
@@ -253,6 +258,8 @@ export default function SpecialtiesPage() {
               </p>
             </CardContent>
           </Card>
+            </>
+          )}
         </div>
 
         {/* Quick Select with Combobox */}

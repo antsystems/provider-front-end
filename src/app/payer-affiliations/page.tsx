@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Building, FileText, TrendingUp, Download, Filter, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
+import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
 
 export default function PayerAffiliationsPage() {
   const { user } = useAuth()
@@ -145,6 +146,10 @@ export default function PayerAffiliationsPage() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {loading ? (
+            <StatsCardSkeleton count={4} />
+          ) : (
+            <>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Affiliations</CardTitle>
@@ -203,6 +208,8 @@ export default function PayerAffiliationsPage() {
               </div>
             </CardContent>
           </Card>
+            </>
+          )}
         </div>
 
         {/* Filters */}

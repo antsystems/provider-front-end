@@ -32,6 +32,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
+import { TableSkeleton } from '@/components/ui/table-skeleton'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -41,6 +42,7 @@ interface DataTableProps<TData, TValue> {
   showColumnToggle?: boolean
   showPagination?: boolean
   initialColumnVisibility?: VisibilityState
+  loading?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -48,6 +50,7 @@ export function DataTable<TData, TValue>({
   data,
   searchKey,
   searchPlaceholder = "Search...",
+  loading = false,
   showColumnToggle = true,
   showPagination = true,
   initialColumnVisibility = {},
@@ -83,7 +86,7 @@ export function DataTable<TData, TValue>({
         {/* Search */}
         {searchKey && (
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" aria-hidden="true" />
             <Input
               placeholder={searchPlaceholder}
               value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
@@ -91,6 +94,7 @@ export function DataTable<TData, TValue>({
                 table.getColumn(searchKey)?.setFilterValue(event.target.value)
               }
               className="pl-10 glass-card border-0"
+              aria-label={searchPlaceholder}
             />
           </div>
         )}
@@ -99,8 +103,8 @@ export function DataTable<TData, TValue>({
         {showColumnToggle && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto glass-card border-0">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
+              <Button variant="outline" className="ml-auto glass-card border-0" aria-label="Toggle column visibility">
+                Columns <ChevronDown className="ml-2 h-4 w-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="glass-card border-0">
@@ -149,7 +153,18 @@ export function DataTable<TData, TValue>({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {loading ? (
+                // Show skeleton rows while loading
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {columns.map((_, colIndex) => (
+                      <TableCell key={colIndex}>
+                        <div className="skeleton-shimmer h-4 w-full rounded" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}

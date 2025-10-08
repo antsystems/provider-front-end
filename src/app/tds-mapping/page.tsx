@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select'
 import AddTDSMappingDialog from '@/components/forms/AddTDSMappingDialog'
 import EditTDSMappingDialog from '@/components/forms/EditTDSMappingDialog'
+import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
 
 export default function TDSMappingPage() {
   const [tdsMappings, setTdsMappings] = useState<TDSMapping[]>([])
@@ -77,9 +78,8 @@ export default function TDSMappingPage() {
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()
     return (
-      mapping.hospital_name.toLowerCase().includes(query) ||
-      mapping.payer_name.toLowerCase().includes(query) ||
-      mapping.payer_type.toLowerCase().includes(query)
+      mapping.provider_name.toLowerCase().includes(query) ||
+      mapping.payer_name.toLowerCase().includes(query)
     )
   })
 
@@ -149,6 +149,10 @@ export default function TDSMappingPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {loading ? (
+            <StatsCardSkeleton count={4} />
+          ) : (
+            <>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Mappings</CardTitle>
@@ -193,6 +197,8 @@ export default function TDSMappingPage() {
               </div>
             </CardContent>
           </Card>
+            </>
+          )}
         </div>
 
         {/* Filters */}
@@ -202,7 +208,7 @@ export default function TDSMappingPage() {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by hospital, payer name, or payer type..."
+                  placeholder="Search by provider or payer name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -249,13 +255,13 @@ export default function TDSMappingPage() {
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-3">
-                      {/* Hospital and Payer */}
+                      {/* Provider and Payer */}
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
                           <Building className="h-4 w-4 text-muted-foreground" />
                           <div>
-                            <div className="text-xs text-muted-foreground">Hospital</div>
-                            <div className="font-semibold">{mapping.hospital_name}</div>
+                            <div className="text-xs text-muted-foreground">Provider</div>
+                            <div className="font-semibold">{mapping.provider_name}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -264,10 +270,6 @@ export default function TDSMappingPage() {
                             <div className="text-xs text-muted-foreground">Payer</div>
                             <div className="font-semibold">{mapping.payer_name}</div>
                           </div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Payer Type</div>
-                          <Badge variant="outline">{mapping.payer_type}</Badge>
                         </div>
                       </div>
 
@@ -282,10 +284,21 @@ export default function TDSMappingPage() {
                         </div>
                       </div>
 
-                      {/* Remarks */}
-                      {mapping.remarks && (
+                      {/* Effective Date */}
+                      {mapping.effective_date && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Effective Date</div>
+                            <div className="font-medium">{formatDate(mapping.effective_date)}</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      {mapping.description && (
                         <div className="text-sm text-muted-foreground">
-                          {mapping.remarks}
+                          {mapping.description}
                         </div>
                       )}
 

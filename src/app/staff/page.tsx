@@ -31,6 +31,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function StaffPage() {
   const [allStaff, setAllStaff] = useState<Staff[]>([]) // All staff from API
@@ -44,6 +46,7 @@ export default function StaffPage() {
     status?: 'active' | 'inactive'
     search?: string
   }>({})
+  const debouncedSearch = useDebounce(filters.search, 300)
   const [departments, setDepartments] = useState<string[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(false)
   const [openDepartment, setOpenDepartment] = useState(false)
@@ -92,11 +95,11 @@ export default function StaffPage() {
     }
   }
 
-  // Get filtered staff for display (client-side search only)
+  // Get filtered staff for display (client-side search with debouncing)
   const getFilteredStaff = () => {
-    if (!filters.search) return allStaff
+    if (!debouncedSearch) return allStaff
 
-    const searchLower = filters.search.toLowerCase()
+    const searchLower = debouncedSearch.toLowerCase()
     return allStaff.filter(staff =>
       staff.name?.toLowerCase().includes(searchLower) ||
       staff.email?.toLowerCase().includes(searchLower) ||
@@ -205,6 +208,10 @@ export default function StaffPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {loading ? (
+          <StatsCardSkeleton count={4} />
+        ) : (
+          <>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
@@ -248,6 +255,8 @@ export default function StaffPage() {
             </div>
           </CardContent>
         </Card>
+          </>
+        )}
       </div>
 
       {/* Filters */}

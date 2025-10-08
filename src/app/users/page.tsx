@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function HospitalUsersPage() {
   const [allUsers, setAllUsers] = useState<HospitalUser[]>([]) // All users from API
@@ -28,6 +30,7 @@ export default function HospitalUsersPage() {
     role?: string
     search?: string
   }>({})
+  const debouncedSearch = useDebounce(filters.search, 300)
 
   const fetchAllUsers = async () => {
     try {
@@ -67,9 +70,9 @@ export default function HospitalUsersPage() {
       )
     }
 
-    // Apply search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase()
+    // Apply search filter (using debounced value)
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase()
       filtered = filtered.filter(user =>
         user.name?.toLowerCase().includes(searchLower) ||
         user.email?.toLowerCase().includes(searchLower) ||
@@ -82,9 +85,10 @@ export default function HospitalUsersPage() {
   }
 
   // Apply filters whenever filters or allUsers change
+  // Use debounced search for better performance
   useEffect(() => {
     applyFilters()
-  }, [filters, allUsers])
+  }, [filters.status, filters.role, debouncedSearch, allUsers])
 
   // Initial load
   useEffect(() => {
@@ -185,6 +189,10 @@ export default function HospitalUsersPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {loading ? (
+          <StatsCardSkeleton count={5} />
+        ) : (
+          <>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -245,6 +253,8 @@ export default function HospitalUsersPage() {
             </div>
           </CardContent>
         </Card>
+          </>
+        )}
       </div>
 
       {/* Filters */}

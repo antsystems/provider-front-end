@@ -10,7 +10,9 @@ import {
   CalculateTDSRequest,
   CalculateTDSResponse,
   GetPayerNamesResponse,
-  GetProviderNamesResponse
+  GetProviderNamesResponse,
+  GetPayerTypesResponse,
+  GetAffiliatedPayersResponse
 } from '@/types/tdsMapping';
 import authService from './auth';
 
@@ -160,6 +162,38 @@ class TDSMappingApi {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Failed to fetch provider names' }));
       throw new Error(errorData.error || 'Failed to fetch provider names');
+    }
+
+    return response.json();
+  }
+
+  async getPayerTypes(): Promise<GetPayerTypesResponse> {
+    const url = `${this.baseUrl}/tds-mapping/payer-types`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to fetch payer types' }));
+      throw new Error(errorData.error || 'Failed to fetch payer types');
+    }
+
+    return response.json();
+  }
+
+  async getAffiliatedPayers(payerType: string): Promise<GetAffiliatedPayersResponse> {
+    const url = `${this.baseUrl}/tds-mapping/affiliated-payers?payer_type=${encodeURIComponent(payerType)}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to fetch affiliated payers' }));
+      throw new Error(errorData.error || 'Failed to fetch affiliated payers');
     }
 
     return response.json();

@@ -1,11 +1,11 @@
 export interface TDSMapping {
   id: string;
-  hospital_id: string;
-  hospital_name: string;
+  provider_name: string;
   payer_name: string;
-  payer_type: string;
   tds_percentage: number;
-  remarks?: string;
+  effective_date?: string;
+  description?: string;
+  hospital_id: string;
   status: 'active' | 'inactive';
   created_by: string;
   created_by_email: string;
@@ -104,5 +104,30 @@ export interface GetPayerNamesResponse {
 export interface GetProviderNamesResponse {
   message: string;
   provider_names: string[];
+  count: number;
+}
+
+export interface PayerType {
+  value: string;
+  label: string;
+}
+
+export interface GetPayerTypesResponse {
+  message: string;
+  payer_types: PayerType[];
+  note?: string;
+}
+
+export interface AffiliatedPayer {
+  payer_id: string;
+  payer_name: string;
+  payer_type: string;
+  affiliation_id: string;
+}
+
+export interface GetAffiliatedPayersResponse {
+  message: string;
+  payer_type: string;
+  affiliated_payers: AffiliatedPayer[];
   count: number;
 }

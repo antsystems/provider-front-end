@@ -345,6 +345,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
           searchPlaceholder="Search by staff name..."
           showColumnToggle={true}
           showPagination={true}
+          loading={loading}
           initialColumnVisibility={{
             staff_id: false,
             experience_years: false,

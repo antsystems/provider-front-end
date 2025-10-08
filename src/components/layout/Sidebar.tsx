@@ -263,8 +263,9 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
           onClick={onToggle}
           className="fixed top-4 left-4 z-50 lg:hidden h-12 w-12 rounded-full shadow-sm hover:scale-105 transition-all duration-200"
           title="Open sidebar"
+          aria-label="Open navigation menu"
         >
-          <Menu size={20} />
+          <Menu size={20} aria-hidden="true" />
         </Button>
       )}
 
@@ -273,6 +274,14 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={onClose}
+          role="button"
+          tabIndex={0}
+          aria-label="Close navigation menu"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+              onClose()
+            }
+          }}
         />
       )}
 
@@ -289,6 +298,8 @@ export default function Sidebar({ isOpen, isCollapsed, onClose, onToggle, isMobi
           isMounted && !isMobile && "translate-x-0",
           isMounted && !isMobile && (isCollapsed ? "w-16" : "w-64")
         )}
+        aria-label="Main navigation"
+        role="navigation"
       >
         <div className="flex flex-col h-full">
           {/* Logo Header with Integrated Toggle */}

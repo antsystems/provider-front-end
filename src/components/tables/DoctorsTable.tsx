@@ -337,6 +337,7 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
           searchPlaceholder="Search by doctor name..."
           showColumnToggle={true}
           showPagination={true}
+          loading={loading}
           initialColumnVisibility={{
             doctor_id: false,
             doctor_code: false,

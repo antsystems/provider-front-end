@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function DoctorsPage() {
   const [allDoctors, setAllDoctors] = useState<Doctor[]>([]) // All doctors from API
@@ -29,6 +31,7 @@ export default function DoctorsPage() {
     status?: 'active' | 'inactive'
     search?: string
   }>({})
+  const debouncedSearch = useDebounce(filters.search, 300)
   const [specialties, setSpecialties] = useState<string[]>([])
   const [departments, setDepartments] = useState<string[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(false)
@@ -102,9 +105,9 @@ export default function DoctorsPage() {
       filtered = filtered.filter(doctor => doctor.IsActive === isActive)
     }
 
-    // Apply search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase()
+    // Apply search filter (using debounced value)
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase()
       filtered = filtered.filter(doctor =>
         doctor.doctor_name?.toLowerCase().includes(searchLower) ||
         doctor.email?.toLowerCase().includes(searchLower) ||
@@ -119,9 +122,10 @@ export default function DoctorsPage() {
   }
 
   // Apply filters whenever filters or allDoctors change
+  // Use debounced search for better performance
   useEffect(() => {
     applyFilters()
-  }, [filters, allDoctors])
+  }, [filters.specialty_name, filters.department_name, filters.status, debouncedSearch, allDoctors])
 
   // Initial load
   useEffect(() => {
@@ -216,6 +220,10 @@ export default function DoctorsPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {loading ? (
+          <StatsCardSkeleton count={4} />
+        ) : (
+          <>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Doctors</CardTitle>
@@ -257,6 +265,8 @@ export default function DoctorsPage() {
             <div className="text-2xl font-bold">{departments.length}</div>
           </CardContent>
         </Card>
+          </>
+        )}
       </div>
 
       {/* Filters */}

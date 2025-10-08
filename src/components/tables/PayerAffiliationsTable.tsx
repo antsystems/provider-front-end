@@ -264,6 +264,7 @@ export function PayerAffiliationsTable({ affiliations, loading, onView, onUpdate
           searchPlaceholder="Search by payer name..."
           showColumnToggle={true}
           showPagination={true}
+          loading={loading}
           initialColumnVisibility={{
             id: false,
             created_on: false,

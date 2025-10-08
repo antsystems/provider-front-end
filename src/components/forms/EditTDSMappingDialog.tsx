@@ -40,16 +40,16 @@ export default function EditTDSMappingDialog({
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<UpdateTDSMappingRequest>({
     tds_percentage: mapping.tds_percentage,
-    effective_date: '',
-    description: mapping.remarks || '',
+    effective_date: mapping.effective_date || '',
+    description: mapping.description || '',
     status: mapping.status,
   })
 
   useEffect(() => {
     setFormData({
       tds_percentage: mapping.tds_percentage,
-      effective_date: '',
-      description: mapping.remarks || '',
+      effective_date: mapping.effective_date || '',
+      description: mapping.description || '',
       status: mapping.status,
     })
   }, [mapping])
@@ -71,10 +71,10 @@ export default function EditTDSMappingDialog({
       if (formData.tds_percentage !== mapping.tds_percentage) {
         payload.tds_percentage = formData.tds_percentage
       }
-      if (formData.effective_date) {
+      if (formData.effective_date && formData.effective_date !== mapping.effective_date) {
         payload.effective_date = formData.effective_date
       }
-      if (formData.description !== mapping.remarks) {
+      if (formData.description !== mapping.description) {
         payload.description = formData.description
       }
       if (formData.status !== mapping.status) {
@@ -100,8 +100,8 @@ export default function EditTDSMappingDialog({
   const handleCancel = () => {
     setFormData({
       tds_percentage: mapping.tds_percentage,
-      effective_date: '',
-      description: mapping.remarks || '',
+      effective_date: mapping.effective_date || '',
+      description: mapping.description || '',
       status: mapping.status,
     })
     onOpenChange(false)
@@ -119,10 +119,10 @@ export default function EditTDSMappingDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            {/* Hospital (Read-only) */}
+            {/* Provider (Read-only) */}
             <div className="grid gap-2">
-              <Label>Hospital</Label>
-              <Input value={mapping.hospital_name} disabled />
+              <Label>Provider</Label>
+              <Input value={mapping.provider_name} disabled />
             </div>
 
             {/* Payer (Read-only) */}
