@@ -136,13 +136,49 @@ export default function SpecialtiesPage() {
 
     try {
       setSaving(true)
-      const response = await specialtyAffiliationsApi.createOrUpdateSpecialtyAffiliation({
-        specialty_ids: Array.from(selectedSpecialties)
-      })
-
-      toast.success(
-        `Successfully saved ${response.affiliation.specialty_count} specialties`
+      
+      // Calculate which specialties to add and remove
+      const toAdd = Array.from(selectedSpecialties).filter(
+        id => !initialSelectedSpecialties.has(id)
       )
+      const toRemove = Array.from(initialSelectedSpecialties).filter(
+        id => !selectedSpecialties.has(id)
+      )
+
+      let successMessage = ''
+
+      // If no initial selection, use createOrUpdate to set all at once
+      if (initialSelectedSpecialties.size === 0) {
+        const response = await specialtyAffiliationsApi.createOrUpdateSpecialtyAffiliation({
+          specialty_ids: Array.from(selectedSpecialties)
+        })
+        successMessage = `Successfully affiliated with ${response.affiliation.specialty_count} specialties`
+      } else {
+        // Otherwise, add new ones and remove old ones
+        const promises = []
+        
+        if (toAdd.length > 0) {
+          promises.push(
+            specialtyAffiliationsApi.addSpecialties({
+              specialty_ids: toAdd
+            })
+          )
+        }
+        
+        // Remove specialties one by one
+        toRemove.forEach(id => {
+          promises.push(specialtyAffiliationsApi.removeSpecialty(id))
+        })
+
+        await Promise.all(promises)
+        
+        const addedMsg = toAdd.length > 0 ? `Added ${toAdd.length}` : ''
+        const removedMsg = toRemove.length > 0 ? `Removed ${toRemove.length}` : ''
+        const separator = addedMsg && removedMsg ? ', ' : ''
+        successMessage = `Successfully updated: ${addedMsg}${separator}${removedMsg} specialties`
+      }
+
+      toast.success(successMessage)
 
       // Update initial state to match current selection
       setInitialSelectedSpecialties(new Set(selectedSpecialties))
