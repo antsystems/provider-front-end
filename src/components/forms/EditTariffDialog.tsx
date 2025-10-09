@@ -34,6 +34,7 @@ import { toast } from 'sonner'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import AddLineItemDialog from './AddLineItemDialog'
 import AddPayerMappingDialog from './AddPayerMappingDialog'
+import EditLineItemDialog from './EditLineItemDialog'
 
 interface EditTariffDialogProps {
   open: boolean
@@ -51,6 +52,7 @@ export default function EditTariffDialog({
   const [tariff, setTariff] = useState(initialTariff)
   const [addLineItemOpen, setAddLineItemOpen] = useState(false)
   const [addPayerMappingOpen, setAddPayerMappingOpen] = useState(false)
+  const [editingLineItem, setEditingLineItem] = useState<any | null>(null)
   const [deletingLineItem, setDeletingLineItem] = useState<string | null>(null)
   const [deletingPayer, setDeletingPayer] = useState<string | null>(null)
   const [deletingTariff, setDeletingTariff] = useState(false)
@@ -141,6 +143,14 @@ export default function EditTariffDialog({
     // Refresh tariff data
     const response = await tariffsApi.getTariffById(tariff.tariff_id)
     setTariff(response.tariff)
+    onUpdate?.()
+  }
+
+  const handleLineItemUpdated = async () => {
+    // Refresh tariff data
+    const response = await tariffsApi.getTariffById(tariff.tariff_id)
+    setTariff(response.tariff)
+    setEditingLineItem(null)
     onUpdate?.()
   }
 
@@ -332,14 +342,25 @@ export default function EditTariffDialog({
                                 {formatCurrency(item.amount)}
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteLineItem(item.line_item)}
-                              disabled={deletingLineItem === item.id}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingLineItem(item)}
+                                title="Edit line item"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteLineItem(item.line_item)}
+                                disabled={deletingLineItem === item.id}
+                                title="Delete line item"
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -440,6 +461,15 @@ export default function EditTariffDialog({
         onOpenChange={setAddPayerMappingOpen}
         tariffId={tariff.tariff_id}
         onSuccess={handlePayerMappingAdded}
+      />
+
+      {/* Edit Line Item Dialog */}
+      <EditLineItemDialog
+        open={!!editingLineItem}
+        onOpenChange={(open) => !open && setEditingLineItem(null)}
+        tariffId={tariff.tariff_id}
+        lineItem={editingLineItem}
+        onSuccess={handleLineItemUpdated}
       />
     </>
   )
