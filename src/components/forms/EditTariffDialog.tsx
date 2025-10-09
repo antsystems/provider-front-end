@@ -53,6 +53,7 @@ export default function EditTariffDialog({
   const [addPayerMappingOpen, setAddPayerMappingOpen] = useState(false)
   const [deletingLineItem, setDeletingLineItem] = useState<string | null>(null)
   const [deletingPayer, setDeletingPayer] = useState<string | null>(null)
+  const [deletingTariff, setDeletingTariff] = useState(false)
   const confirmDialog = useConfirmDialog()
 
   useEffect(() => {
@@ -143,6 +144,32 @@ export default function EditTariffDialog({
     onUpdate?.()
   }
 
+  const handleDeleteTariff = async () => {
+    confirmDialog.open({
+      title: 'Delete Tariff',
+      description: `Are you sure you want to delete the tariff "${tariff.tariff_name}"? This will permanently delete the tariff along with all its line items and payer mappings. This action cannot be undone.`,
+      confirmText: 'Delete Tariff',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          setDeletingTariff(true)
+          await tariffsApi.deleteTariff(tariff.tariff_id)
+          toast.success(`Tariff "${tariff.tariff_name}" deleted successfully`)
+          
+          // Close dialog and refresh parent list
+          onOpenChange(false)
+          onUpdate?.()
+        } catch (error) {
+          console.error('Error deleting tariff:', error)
+          toast.error(error instanceof Error ? error.message : 'Failed to delete tariff')
+        } finally {
+          setDeletingTariff(false)
+        }
+      }
+    })
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,7 +185,19 @@ export default function EditTariffDialog({
                   {tariff.tariff_id}
                 </DialogDescription>
               </div>
-              {getStatusBadge(tariff.status)}
+              <div className="flex items-center gap-2">
+                {getStatusBadge(tariff.status)}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteTariff}
+                  disabled={deletingTariff}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {deletingTariff ? 'Deleting...' : 'Delete Tariff'}
+                </Button>
+              </div>
             </div>
           </DialogHeader>
 
