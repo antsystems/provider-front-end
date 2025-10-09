@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { tdsMappingApi } from '@/services/tdsMappingApi'
+import { payerAffiliationsApi } from '@/services/payerAffiliationsApi'
 import { CreateTDSMappingRequest } from '@/types/tdsMapping'
 
 interface AddTDSMappingDialogProps {
@@ -55,11 +56,14 @@ export default function AddTDSMappingDialog({
   const fetchPayerNames = async () => {
     try {
       setLoadingData(true)
-      const response = await tdsMappingApi.getPayerNames()
-      setPayerNames(response.payer_names)
+      // Fetch only affiliated payers for the hospital
+      const response = await payerAffiliationsApi.getActivePayerAffiliations()
+      // Extract payer names from affiliations
+      const names = response.affiliations.map(affiliation => affiliation.payer_name)
+      setPayerNames(names)
     } catch (error) {
-      console.error('Error fetching payer names:', error)
-      toast.error('Failed to fetch payer names')
+      console.error('Error fetching affiliated payer names:', error)
+      toast.error('Failed to load affiliated payers. Please ensure you have payer affiliations set up.')
     } finally {
       setLoadingData(false)
     }
