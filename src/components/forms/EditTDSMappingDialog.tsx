@@ -119,12 +119,6 @@ export default function EditTDSMappingDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            {/* Provider (Read-only) */}
-            <div className="grid gap-2">
-              <Label>Provider</Label>
-              <Input value={mapping.provider_name} disabled />
-            </div>
-
             {/* Payer (Read-only) */}
             <div className="grid gap-2">
               <Label>Payer</Label>

@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { tdsMappingApi } from '@/services/tdsMappingApi'
-import { CreateTDSMappingRequest, PayerType, AffiliatedPayer } from '@/types/tdsMapping'
+import { CreateTDSMappingRequest } from '@/types/tdsMapping'
 
 interface AddTDSMappingDialogProps {
   open: boolean
@@ -43,63 +43,23 @@ export default function AddTDSMappingDialog({
     effective_date: '',
     description: '',
   })
-  const [providerNames, setProviderNames] = useState<string[]>([])
-  const [payerTypes, setPayerTypes] = useState<PayerType[]>([])
-  const [selectedPayerType, setSelectedPayerType] = useState<string>('')
-  const [affiliatedPayers, setAffiliatedPayers] = useState<AffiliatedPayer[]>([])
+  const [payerNames, setPayerNames] = useState<string[]>([])
   const [loadingData, setLoadingData] = useState(false)
 
   useEffect(() => {
     if (open) {
-      fetchProviderNames()
-      fetchPayerTypes()
+      fetchPayerNames()
     }
   }, [open])
 
-  useEffect(() => {
-    if (selectedPayerType) {
-      fetchAffiliatedPayers(selectedPayerType)
-    } else {
-      setAffiliatedPayers([])
-      setFormData(prev => ({ ...prev, payer_name: '' }))
-    }
-  }, [selectedPayerType])
-
-  const fetchProviderNames = async () => {
+  const fetchPayerNames = async () => {
     try {
       setLoadingData(true)
-      const response = await tdsMappingApi.getProviderNames()
-      setProviderNames(response.provider_names)
+      const response = await tdsMappingApi.getPayerNames()
+      setPayerNames(response.payer_names)
     } catch (error) {
-      console.error('Error fetching provider names:', error)
-      toast.error('Failed to fetch provider names')
-    } finally {
-      setLoadingData(false)
-    }
-  }
-
-  const fetchPayerTypes = async () => {
-    try {
-      setLoadingData(true)
-      const response = await tdsMappingApi.getPayerTypes()
-      setPayerTypes(response.payer_types)
-    } catch (error) {
-      console.error('Error fetching payer types:', error)
-      toast.error('Failed to fetch payer types')
-    } finally {
-      setLoadingData(false)
-    }
-  }
-
-  const fetchAffiliatedPayers = async (payerType: string) => {
-    try {
-      setLoadingData(true)
-      const response = await tdsMappingApi.getAffiliatedPayers(payerType)
-      setAffiliatedPayers(response.affiliated_payers)
-    } catch (error) {
-      console.error('Error fetching affiliated payers:', error)
-      toast.error('Failed to fetch affiliated payers')
-      setAffiliatedPayers([])
+      console.error('Error fetching payer names:', error)
+      toast.error('Failed to fetch payer names')
     } finally {
       setLoadingData(false)
     }
@@ -109,10 +69,6 @@ export default function AddTDSMappingDialog({
     e.preventDefault()
 
     // Validation
-    if (!formData.provider_name.trim()) {
-      toast.error('Provider name is required')
-      return
-    }
     if (!formData.payer_name.trim()) {
       toast.error('Payer name is required')
       return
@@ -171,8 +127,6 @@ export default function AddTDSMappingDialog({
       effective_date: '',
       description: '',
     })
-    setSelectedPayerType('')
-    setAffiliatedPayers([])
     onOpenChange(false)
   }
 
@@ -188,64 +142,6 @@ export default function AddTDSMappingDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            {/* Provider Name */}
-            <div className="grid gap-2">
-              <Label htmlFor="provider_name">
-                Provider Name <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={formData.provider_name}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, provider_name: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingData ? (
-                    <SelectItem value="loading" disabled>Loading...</SelectItem>
-                  ) : providerNames.length === 0 ? (
-                    <SelectItem value="empty" disabled>No providers found</SelectItem>
-                  ) : (
-                    providerNames.map((name) => (
-                      <SelectItem key={name} value={name}>
-                        {name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Payer Type */}
-            <div className="grid gap-2">
-              <Label htmlFor="payer_type">
-                Payer Type <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={selectedPayerType}
-                onValueChange={setSelectedPayerType}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payer type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingData ? (
-                    <SelectItem value="loading" disabled>Loading...</SelectItem>
-                  ) : payerTypes.length === 0 ? (
-                    <SelectItem value="empty" disabled>No payer types found</SelectItem>
-                  ) : (
-                    payerTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Payer Name */}
             <div className="grid gap-2">
               <Label htmlFor="payer_name">
@@ -256,20 +152,19 @@ export default function AddTDSMappingDialog({
                 onValueChange={(value) =>
                   setFormData({ ...formData, payer_name: value })
                 }
-                disabled={!selectedPayerType}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={selectedPayerType ? "Select payer" : "Select payer type first"} />
+                  <SelectValue placeholder="Select payer" />
                 </SelectTrigger>
                 <SelectContent>
                   {loadingData ? (
                     <SelectItem value="loading" disabled>Loading...</SelectItem>
-                  ) : affiliatedPayers.length === 0 ? (
-                    <SelectItem value="empty" disabled>No affiliated payers found</SelectItem>
+                  ) : payerNames.length === 0 ? (
+                    <SelectItem value="empty" disabled>No payers found</SelectItem>
                   ) : (
-                    affiliatedPayers.map((payer) => (
-                      <SelectItem key={payer.payer_id} value={payer.payer_name}>
-                        {payer.payer_name}
+                    payerNames.map((name) => (
+                      <SelectItem key={name} value={name}>
+                        {name}
                       </SelectItem>
                     ))
                   )}
