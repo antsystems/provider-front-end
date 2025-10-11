@@ -95,17 +95,9 @@ export default function AddTDSMappingDialog({
     try {
       setLoading(true)
 
-      // Get hospital name from user context
-      const hospitalName = user?.entity_assignments?.hospitals?.[0]?.name || user?.assignedEntity?.name || ''
-      
-      if (!hospitalName) {
-        toast.error('Unable to determine hospital. Please ensure you are logged in properly.')
-        setLoading(false)
-        return
-      }
-
+      // Backend determines hospital from auth token, so provider_name can be empty
       const payload: CreateTDSMappingRequest = {
-        provider_name: hospitalName,
+        provider_name: '',  // Backend uses hospital from auth token
         payer_name: formData.payer_name,
         tds_percentage: formData.tds_percentage,
       }
