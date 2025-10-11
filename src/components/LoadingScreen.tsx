@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 
@@ -42,23 +42,36 @@ export default function LoadingScreen({ isLoading = false }: LoadingScreenProps)
   )
 }
 
-// Hook for detecting route changes
-export function useRouteLoading() {
-  const [isLoading, setIsLoading] = useState(false)
+// Hook for detecting route changes - Internal component
+function RouteLoadingDetector({ onLoadingChange }: { onLoadingChange: (loading: boolean) => void }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   useEffect(() => {
     // Show loading when route starts changing
-    setIsLoading(true)
+    onLoadingChange(true)
 
     // Hide loading after a short delay to ensure smooth transition
     const timeout = setTimeout(() => {
-      setIsLoading(false)
+      onLoadingChange(false)
     }, 500) // Adjust timing as needed
 
     return () => clearTimeout(timeout)
-  }, [pathname, searchParams])
+  }, [pathname, searchParams, onLoadingChange])
 
-  return isLoading
+  return null
+}
+
+// Hook for detecting route changes
+export function useRouteLoading() {
+  const [isLoading, setIsLoading] = useState(false)
+
+  return {
+    isLoading,
+    RouteLoadingWrapper: () => (
+      <Suspense fallback={null}>
+        <RouteLoadingDetector onLoadingChange={setIsLoading} />
+      </Suspense>
+    )
+  }
 }
