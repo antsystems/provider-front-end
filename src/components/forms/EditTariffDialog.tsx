@@ -195,19 +195,7 @@ export default function EditTariffDialog({
                   {tariff.tariff_id}
                 </DialogDescription>
               </div>
-              <div className="flex items-center gap-2">
-                {getStatusBadge(tariff.status)}
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteTariff}
-                  disabled={deletingTariff}
-                  className="gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {deletingTariff ? 'Deleting...' : 'Delete Tariff'}
-                </Button>
-              </div>
+              {getStatusBadge(tariff.status)}
             </div>
           </DialogHeader>
 
@@ -439,7 +427,16 @@ export default function EditTariffDialog({
           </Tabs>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
+          <div className="flex justify-between gap-2 pt-4 border-t">
+            <Button
+              variant="destructive"
+              onClick={handleDeleteTariff}
+              disabled={deletingTariff}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              {deletingTariff ? 'Deleting...' : 'Delete Tariff'}
+            </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
