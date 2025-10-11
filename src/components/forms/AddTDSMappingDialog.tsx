@@ -47,6 +47,7 @@ export default function AddTDSMappingDialog({
     description: '',
   })
   const [payerNames, setPayerNames] = useState<string[]>([])
+  const [affiliatedPayers, setAffiliatedPayers] = useState<Array<{payer_id: string, payer_name: string}>>([])
   const [loadingData, setLoadingData] = useState(false)
 
   useEffect(() => {
@@ -62,7 +63,14 @@ export default function AddTDSMappingDialog({
       const response = await payerAffiliationsApi.getActivePayerAffiliations()
       console.log('Fetched affiliated payers:', response.affiliations)
       
-      // Extract payer names from affiliations
+      // Store full affiliation data for later use
+      const payersData = response.affiliations.map(affiliation => ({
+        payer_id: affiliation.payer_id,
+        payer_name: affiliation.payer_name
+      }))
+      setAffiliatedPayers(payersData)
+      
+      // Extract payer names for dropdown
       const names = response.affiliations.map(affiliation => affiliation.payer_name)
       console.log('Available payer names for TDS mapping:', names)
       
@@ -95,10 +103,19 @@ export default function AddTDSMappingDialog({
     try {
       setLoading(true)
 
+      // Find the exact affiliated payer to ensure exact name match
+      const selectedPayer = affiliatedPayers.find(p => p.payer_name === formData.payer_name)
+      
+      if (!selectedPayer) {
+        toast.error('Selected payer not found in affiliated payers. Please refresh and try again.')
+        setLoading(false)
+        return
+      }
+
       // Backend determines hospital from auth token, so provider_name can be empty
       const payload: CreateTDSMappingRequest = {
         provider_name: '',  // Backend uses hospital from auth token
-        payer_name: formData.payer_name,
+        payer_name: selectedPayer.payer_name,  // Use exact name from affiliation
         tds_percentage: formData.tds_percentage,
       }
 
@@ -110,6 +127,7 @@ export default function AddTDSMappingDialog({
       }
 
       console.log('Creating TDS mapping with payload:', payload)
+      console.log('Selected payer from affiliations:', selectedPayer)
 
       await tdsMappingApi.createTDSMapping(payload)
 
