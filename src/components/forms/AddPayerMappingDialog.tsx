@@ -50,6 +50,7 @@ import { cn } from '@/lib/utils'
 
 const payerMappingSchema = z.object({
   payer_ids: z.array(z.string()).min(1, 'Please select at least one payer'),
+  mapping_type: z.string().min(1, 'Mapping type is required'),
 })
 
 type PayerMappingFormValues = z.infer<typeof payerMappingSchema>
@@ -76,6 +77,7 @@ export default function AddPayerMappingDialog({
     resolver: zodResolver(payerMappingSchema),
     defaultValues: {
       payer_ids: [],
+      mapping_type: 'direct',
     },
   })
 
@@ -119,7 +121,7 @@ export default function AddPayerMappingDialog({
         const createData: CreatePayerMappingRequest = {
           payer_id: selectedPayers[0].payer_id,
           payer_name: selectedPayers[0].payer_name,
-          payer_type: selectedPayers[0].payer_type,
+          mapping_type: values.mapping_type,
         }
 
         await tariffsApi.addPayerMapping(tariffId, createData)
@@ -130,7 +132,7 @@ export default function AddPayerMappingDialog({
           payers: selectedPayers.map(p => ({
             payer_id: p.payer_id,
             payer_name: p.payer_name,
-            payer_type: p.payer_type,
+            mapping_type: values.mapping_type,
           })),
         }
 
@@ -173,6 +175,31 @@ export default function AddPayerMappingDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Mapping Type */}
+            <FormField
+              control={form.control}
+              name="mapping_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mapping Type *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select mapping type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="direct">Direct</SelectItem>
+                      <SelectItem value="negotiated">Negotiated</SelectItem>
+                      <SelectItem value="discounted">Discounted</SelectItem>
+                      <SelectItem value="custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Payer Selection */}
             <FormField
               control={form.control}

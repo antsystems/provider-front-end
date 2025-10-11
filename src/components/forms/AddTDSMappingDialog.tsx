@@ -24,7 +24,6 @@ import { toast } from 'sonner'
 import { tdsMappingApi } from '@/services/tdsMappingApi'
 import { payerAffiliationsApi } from '@/services/payerAffiliationsApi'
 import { CreateTDSMappingRequest } from '@/types/tdsMapping'
-import { useAuth } from '@/contexts/AuthContext'
 
 interface AddTDSMappingDialogProps {
   open: boolean
@@ -37,7 +36,6 @@ export default function AddTDSMappingDialog({
   onOpenChange,
   onSuccess,
 }: AddTDSMappingDialogProps) {
-  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<CreateTDSMappingRequest>({
     provider_name: '',
@@ -47,7 +45,6 @@ export default function AddTDSMappingDialog({
     description: '',
   })
   const [payerNames, setPayerNames] = useState<string[]>([])
-  const [affiliatedPayers, setAffiliatedPayers] = useState<Array<{payer_id: string, payer_name: string}>>([])
   const [loadingData, setLoadingData] = useState(false)
 
   useEffect(() => {
@@ -61,24 +58,9 @@ export default function AddTDSMappingDialog({
       setLoadingData(true)
       // Fetch only affiliated payers for the hospital
       const response = await payerAffiliationsApi.getActivePayerAffiliations()
-      console.log('Fetched affiliated payers:', response.affiliations)
-      
-      // Store full affiliation data for later use
-      const payersData = response.affiliations.map(affiliation => ({
-        payer_id: affiliation.payer_id,
-        payer_name: affiliation.payer_name
-      }))
-      setAffiliatedPayers(payersData)
-      
-      // Extract payer names for dropdown
+      // Extract payer names from affiliations
       const names = response.affiliations.map(affiliation => affiliation.payer_name)
-      console.log('Available payer names for TDS mapping:', names)
-      
       setPayerNames(names)
-      
-      if (names.length === 0) {
-        toast.warning('No affiliated payers found. Please set up payer affiliations first in the Payer Affiliations page.')
-      }
     } catch (error) {
       console.error('Error fetching affiliated payer names:', error)
       toast.error('Failed to load affiliated payers. Please ensure you have payer affiliations set up.')
@@ -103,19 +85,9 @@ export default function AddTDSMappingDialog({
     try {
       setLoading(true)
 
-      // Find the exact affiliated payer to ensure exact name match
-      const selectedPayer = affiliatedPayers.find(p => p.payer_name === formData.payer_name)
-      
-      if (!selectedPayer) {
-        toast.error('Selected payer not found in affiliated payers. Please refresh and try again.')
-        setLoading(false)
-        return
-      }
-
-      // Backend determines hospital from auth token, so provider_name can be empty
       const payload: CreateTDSMappingRequest = {
-        provider_name: '',  // Backend uses hospital from auth token
-        payer_name: selectedPayer.payer_name,  // Use exact name from affiliation
+        provider_name: formData.provider_name,
+        payer_name: formData.payer_name,
         tds_percentage: formData.tds_percentage,
       }
 
@@ -125,9 +97,6 @@ export default function AddTDSMappingDialog({
       if (formData.description?.trim()) {
         payload.description = formData.description
       }
-
-      console.log('Creating TDS mapping with payload:', payload)
-      console.log('Selected payer from affiliations:', selectedPayer)
 
       await tdsMappingApi.createTDSMapping(payload)
 

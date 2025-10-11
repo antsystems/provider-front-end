@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import LoadingScreen from './LoadingScreen'
 
@@ -8,31 +8,25 @@ interface GlobalLoadingProviderProps {
   children: React.ReactNode
 }
 
-// Internal component that uses searchParams
-function LoadingDetector({ onLoadingChange }: { onLoadingChange: (loading: boolean) => void }) {
+export default function GlobalLoadingProvider({ children }: GlobalLoadingProviderProps) {
+  const [isLoading, setIsLoading] = useState(false)
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   useEffect(() => {
     // Show loading immediately when route starts changing
-    onLoadingChange(true)
+    setIsLoading(true)
 
     // Hide loading after a brief delay to show the transition
     const timer = setTimeout(() => {
-      onLoadingChange(false)
+      setIsLoading(false)
     }, 400) // Slightly shorter for quicker feel
 
     return () => {
       clearTimeout(timer)
-      onLoadingChange(false)
+      setIsLoading(false)
     }
-  }, [pathname, searchParams, onLoadingChange])
-
-  return null
-}
-
-export default function GlobalLoadingProvider({ children }: GlobalLoadingProviderProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  }, [pathname, searchParams])
 
   // Also handle initial page load
   useEffect(() => {
@@ -41,9 +35,6 @@ export default function GlobalLoadingProvider({ children }: GlobalLoadingProvide
 
   return (
     <>
-      <Suspense fallback={null}>
-        <LoadingDetector onLoadingChange={setIsLoading} />
-      </Suspense>
       {isLoading && (
         <LoadingScreen isLoading={true} />
       )}
