@@ -24,6 +24,7 @@ import { toast } from 'sonner'
 import { tdsMappingApi } from '@/services/tdsMappingApi'
 import { payerAffiliationsApi } from '@/services/payerAffiliationsApi'
 import { CreateTDSMappingRequest } from '@/types/tdsMapping'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface AddTDSMappingDialogProps {
   open: boolean
@@ -36,6 +37,7 @@ export default function AddTDSMappingDialog({
   onOpenChange,
   onSuccess,
 }: AddTDSMappingDialogProps) {
+  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<CreateTDSMappingRequest>({
     provider_name: '',
@@ -58,9 +60,17 @@ export default function AddTDSMappingDialog({
       setLoadingData(true)
       // Fetch only affiliated payers for the hospital
       const response = await payerAffiliationsApi.getActivePayerAffiliations()
+      console.log('Fetched affiliated payers:', response.affiliations)
+      
       // Extract payer names from affiliations
       const names = response.affiliations.map(affiliation => affiliation.payer_name)
+      console.log('Available payer names for TDS mapping:', names)
+      
       setPayerNames(names)
+      
+      if (names.length === 0) {
+        toast.warning('No affiliated payers found. Please set up payer affiliations first in the Payer Affiliations page.')
+      }
     } catch (error) {
       console.error('Error fetching affiliated payer names:', error)
       toast.error('Failed to load affiliated payers. Please ensure you have payer affiliations set up.')
@@ -85,8 +95,17 @@ export default function AddTDSMappingDialog({
     try {
       setLoading(true)
 
+      // Get hospital name from user context
+      const hospitalName = user?.entity_assignments?.hospitals?.[0]?.name || user?.assignedEntity?.name || ''
+      
+      if (!hospitalName) {
+        toast.error('Unable to determine hospital. Please ensure you are logged in properly.')
+        setLoading(false)
+        return
+      }
+
       const payload: CreateTDSMappingRequest = {
-        provider_name: formData.provider_name,
+        provider_name: hospitalName,
         payer_name: formData.payer_name,
         tds_percentage: formData.tds_percentage,
       }
@@ -97,6 +116,8 @@ export default function AddTDSMappingDialog({
       if (formData.description?.trim()) {
         payload.description = formData.description
       }
+
+      console.log('Creating TDS mapping with payload:', payload)
 
       await tdsMappingApi.createTDSMapping(payload)
 
