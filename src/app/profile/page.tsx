@@ -264,10 +264,7 @@ function ProfilePageContent() {
             {user.entity_assignments?.hospitals?.[0] && (
               <div className="flex items-center gap-3 text-sm">
                 <Building2 size={16} className="text-gray-500" />
-                <div>
-                  <div>{user.entity_assignments.hospitals[0].name}</div>
-                  <div className="text-xs text-gray-400">{user.entity_assignments.hospitals[0]?.city}</div>
-                </div>
+                <div>{user.entity_assignments.hospitals[0].name}</div>
               </div>
             )}
             <Separator />
