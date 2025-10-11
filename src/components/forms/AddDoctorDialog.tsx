@@ -37,6 +37,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CreateDoctorRequest } from '@/types/doctors'
 import { doctorsApi } from '@/services/doctorsApi'
+import { departmentsApi } from '@/services/departmentsApi'
 import { Stethoscope, Mail, Phone, GraduationCap, Clock, IndianRupee, Users, Building, ChevronsUpDown, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -96,16 +97,19 @@ export default function AddDoctorDialog({
       try {
         const [specialtiesResponse, departmentsResponse] = await Promise.all([
           doctorsApi.getAvailableSpecialties(),
-          doctorsApi.getAvailableDepartments()
+          departmentsApi.getActiveDepartments()
         ])
 
-    // Normalize and deduplicate specialties and departments
+    // Normalize and deduplicate specialties
     const specialtiesList: string[] = specialtiesResponse.specialty_names ?? []
     const dedupedSpecialties = Array.from(new Set(specialtiesList.map(s => (s || '').trim()).filter(Boolean)))
     setSpecialties(dedupedSpecialties)
 
-    const depList: string[] = departmentsResponse.department_names ?? []
-    const dedupedDepartments = Array.from(new Set(depList.map(d => (d || '').trim()).filter(Boolean)))
+    // Filter to show only CLINICAL departments
+    const clinicalDepartments = departmentsResponse.departments
+      .filter(dept => dept.department_type === 'CLINICAL' && dept.status === 'active')
+      .map(dept => dept.department_name)
+    const dedupedDepartments = Array.from(new Set(clinicalDepartments.map(d => (d || '').trim()).filter(Boolean)))
     setDepartments(dedupedDepartments)
       } catch (error) {
         console.error('Error fetching options:', error)
@@ -161,7 +165,7 @@ export default function AddDoctorDialog({
             Add New Doctor
           </DialogTitle>
           <DialogDescription>
-            Create a new doctor profile with specialty and department information.
+            Create a new doctor profile with specialty and department information. Only CLINICAL departments are shown as doctors can only be assigned to clinical departments.
           </DialogDescription>
         </DialogHeader>
 
@@ -323,7 +327,11 @@ export default function AddDoctorDialog({
                           <Command>
                             <CommandInput placeholder="Search department..." />
                             <CommandList>
-                              <CommandEmpty>No department found.</CommandEmpty>
+                              <CommandEmpty>
+                                {departments.length === 0 
+                                  ? "No CLINICAL departments found. Please create a CLINICAL department first." 
+                                  : "No department found."}
+                              </CommandEmpty>
                               <CommandGroup>
                                 {departments.map((department) => (
                                   <CommandItem
