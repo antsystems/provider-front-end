@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import MainLayout from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +35,7 @@ import EditTDSMappingDialog from '@/components/forms/EditTDSMappingDialog'
 import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
 
 export default function TDSMappingPage() {
+  const { user } = useAuth()
   const [tdsMappings, setTdsMappings] = useState<TDSMapping[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -75,6 +77,12 @@ export default function TDSMappingPage() {
   }, [statusFilter])
 
   const filteredTdsMappings = tdsMappings.filter(mapping => {
+    // Only show TDS mappings that belong to the user's hospital
+    if (user?.assignedEntity?.id && mapping.hospital_id !== user.assignedEntity.id) {
+      return false
+    }
+    
+    // Search filter
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()
     return (
@@ -159,7 +167,7 @@ export default function TDSMappingPage() {
               <Percent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{tdsMappings.length}</div>
+              <div className="text-2xl font-bold">{filteredTdsMappings.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -169,7 +177,7 @@ export default function TDSMappingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {tdsMappings.filter(m => m.status === 'active').length}
+                {filteredTdsMappings.filter(m => m.status === 'active').length}
               </div>
             </CardContent>
           </Card>
@@ -180,7 +188,7 @@ export default function TDSMappingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {tdsMappings.filter(m => m.status === 'inactive').length}
+                {filteredTdsMappings.filter(m => m.status === 'inactive').length}
               </div>
             </CardContent>
           </Card>
@@ -191,8 +199,8 @@ export default function TDSMappingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {tdsMappings.length > 0
-                  ? (tdsMappings.reduce((sum, m) => sum + m.tds_percentage, 0) / tdsMappings.length).toFixed(2)
+                {filteredTdsMappings.length > 0
+                  ? (filteredTdsMappings.reduce((sum, m) => sum + m.tds_percentage, 0) / filteredTdsMappings.length).toFixed(2)
                   : '0.00'}%
               </div>
             </CardContent>
