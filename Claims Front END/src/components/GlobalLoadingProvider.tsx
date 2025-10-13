@@ -1,17 +1,16 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import LoadingScreen from './LoadingScreen'
 
 interface GlobalLoadingProviderProps {
   children: React.ReactNode
 }
 
-function GlobalLoadingProviderContent({ children }: GlobalLoadingProviderProps) {
+export default function GlobalLoadingProvider({ children }: GlobalLoadingProviderProps) {
   const [isLoading, setIsLoading] = useState(false)
   const pathname = usePathname()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
     // Show loading immediately when route starts changing
@@ -26,7 +25,7 @@ function GlobalLoadingProviderContent({ children }: GlobalLoadingProviderProps) 
       clearTimeout(timer)
       setIsLoading(false)
     }
-  }, [pathname, searchParams])
+  }, [pathname])
 
   // Also handle initial page load
   useEffect(() => {
@@ -40,13 +39,5 @@ function GlobalLoadingProviderContent({ children }: GlobalLoadingProviderProps) 
       )}
       {children}
     </>
-  )
-}
-
-export default function GlobalLoadingProvider({ children }: GlobalLoadingProviderProps) {
-  return (
-    <Suspense fallback={<LoadingScreen isLoading={true} />}>
-      <GlobalLoadingProviderContent>{children}</GlobalLoadingProviderContent>
-    </Suspense>
   )
 }
