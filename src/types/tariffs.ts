@@ -10,6 +10,18 @@ export interface TariffLineItem {
   created_by: string
 }
 
+// Affiliated Insurance Company (for TPAs)
+export interface AffiliatedInsuranceCompany {
+  payer_id: string
+  payer_name: string
+}
+
+// Managed By TPA (for Insurance Companies)
+export interface ManagedByTPA {
+  payer_id: string
+  payer_name: string
+}
+
 // Payer Mapping
 export interface PayerMapping {
   payer_id: string
@@ -17,6 +29,9 @@ export interface PayerMapping {
   payer_type: string
   mapped_at: string
   mapped_by: string
+  // TPA relationships
+  affiliated_insurance_companies?: AffiliatedInsuranceCompany[]
+  managed_by_tpa?: ManagedByTPA
 }
 
 // Tariff
@@ -84,6 +99,7 @@ export interface CreateTariffRequest {
   tariff_end_date?: string
   document_name?: string
   line_items: CreateTariffLineItem[]
+  payer_mappings?: BulkPayerMappingItem[]
 }
 
 export interface CreateTariffResponse {
@@ -174,6 +190,7 @@ export interface BulkPayerMappingItem {
   payer_id: string
   payer_name: string
   payer_type: string
+  affiliated_insurance_companies?: AffiliatedInsuranceCompany[]
 }
 
 export interface BulkCreatePayerMappingsRequest {
@@ -185,6 +202,30 @@ export interface BulkCreatePayerMappingsResponse {
   successful: number
   failed: number
   payer_mappings: PayerMapping[]
+}
+
+// Bulk create with TPA relationships
+export interface BulkCreatePayerMappingsWithRelationshipsRequest {
+  payers: BulkPayerMappingItem[]
+}
+
+export interface BulkCreatePayerMappingsWithRelationshipsResponse {
+  message: string
+  tariff_id: string
+  results: {
+    tpas_added: Array<{
+      payer_name: string
+      affiliated_count: number
+    }>
+    insurance_companies_added: string[]
+    other_payers_added: string[]
+  }
+  summary: {
+    total_added: number
+    tpas_added: number
+    insurance_companies_added: number
+    other_payers_added: number
+  }
 }
 
 export interface UpdatePayerMappingRequest {

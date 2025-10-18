@@ -40,14 +40,16 @@ export default function HospitalUserDetailsDialog({
   const [isLoading, setIsLoading] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<string>('')
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return '—'
     const date = new Date(dateString)
     if (isNaN(date.getTime())) return dateString
     return format(date, 'PPP p')
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status?: string) => {
+    if (!status) return <Badge variant="outline">Unknown</Badge>
+    
     const statusConfig = USER_STATUS_OPTIONS.find(opt => opt.value === status)
     switch (status) {
       case 'active':
@@ -61,7 +63,7 @@ export default function HospitalUserDetailsDialog({
     }
   }
 
-  const getRoleBadges = (roles: string[]) => {
+  const getRoleBadges = (user: HospitalUser) => {
     const roleLabels = {
       'hospital_admin': 'Hospital Admin',
       'hospital_user': 'Hospital User',
@@ -69,7 +71,10 @@ export default function HospitalUserDetailsDialog({
       'rp': 'Regional Partner'
     }
 
-    return roles.map(role => (
+    // Handle both roles array and single role string
+    const rolesList = user.roles || [user.role];
+
+    return rolesList.map(role => (
       <Badge key={role} variant="outline" className="bg-blue-50 text-blue-700">
         {roleLabels[role as keyof typeof roleLabels] || role}
       </Badge>
@@ -78,6 +83,7 @@ export default function HospitalUserDetailsDialog({
 
   const handleStatusUpdate = async () => {
     if (!user || !selectedStatus || selectedStatus === user.status) return
+    if (!user.user_id && !user.uid) return
 
     setIsLoading(true)
     try {
@@ -85,7 +91,11 @@ export default function HospitalUserDetailsDialog({
         status: selectedStatus as 'active' | 'inactive' | 'pending_password_set'
       }
 
-      const response = await hospitalUsersApi.updateUserStatus(user.user_id, updateData)
+      const userId = user.user_id ?? user.uid
+      if (!userId) {
+        throw new Error('Missing user id')
+      }
+      const response = await hospitalUsersApi.updateUserStatus(userId, updateData)
 
       // Update the user object with new status and updated_on
       const updatedUser: HospitalUser = {
@@ -106,7 +116,7 @@ export default function HospitalUserDetailsDialog({
   }
 
   const handleResendPasswordEmail = async () => {
-    if (!user) return
+    if (!user || !user.user_id) return
 
     try {
       const response = await hospitalUsersApi.resendPasswordSetupEmail(user.user_id)
@@ -176,7 +186,7 @@ export default function HospitalUserDetailsDialog({
                 <div className="flex items-center gap-2 flex-wrap">
                   <Shield className="h-4 w-4 text-muted-foreground" />
                   <div className="flex gap-1 flex-wrap">
-                    {getRoleBadges(user.roles)}
+                    {getRoleBadges(user)}
                   </div>
                 </div>
               </div>
@@ -292,18 +302,20 @@ export default function HospitalUserDetailsDialog({
                   >
                     Copy Email Address
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigator.clipboard.writeText(user.user_id)}
-                  >
-                    Copy User ID
-                  </Button>
+                  {(user.user_id || user.uid) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigator.clipboard.writeText(user.user_id || user.uid || '')}
+                    >
+                      Copy User ID
+                    </Button>
+                  )}
                   {user.firebase_uid && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigator.clipboard.writeText(user.firebase_uid!)}
+                      onClick={() => navigator.clipboard.writeText(user.firebase_uid || '')}
                     >
                       Copy Firebase UID
                     </Button>

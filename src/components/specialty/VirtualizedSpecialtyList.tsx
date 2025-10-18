@@ -46,9 +46,14 @@ export function VirtualizedSpecialtyList({
     return () => container.removeEventListener('scroll', handleScroll)
   }, [specialties.length])
 
-  const totalHeight = Math.ceil(specialties.length / ITEMS_PER_ROW) * ITEM_HEIGHT
+  // Filter out specialties with null IDs and create valid items array
+  const validSpecialties = specialties.filter((s): s is Specialty => 
+    Boolean(s && s.specialty_id)
+  )
+  
+  const totalHeight = Math.ceil(validSpecialties.length / ITEMS_PER_ROW) * ITEM_HEIGHT
   const offsetY = Math.floor(visibleRange.start / ITEMS_PER_ROW) * ITEM_HEIGHT
-  const visibleItems = specialties.slice(visibleRange.start, visibleRange.end)
+  const visibleItems = validSpecialties.slice(visibleRange.start, visibleRange.end)
 
   return (
     <div
@@ -65,11 +70,13 @@ export function VirtualizedSpecialtyList({
             gap: '1rem',
           }}
         >
-          {visibleItems.map((specialty) => {
+          {visibleItems.map((specialty, index) => {
+            // Use compound key that combines ID and index for uniqueness
+            const key = `${specialty.specialty_id}-${index}`
             const isSelected = selectedIds.has(specialty.specialty_id)
             return (
               <div
-                key={specialty.specialty_id}
+                key={key}
                 onClick={() => onToggle(specialty.specialty_id)}
                 className={`
                   p-4 rounded-lg border-2 transition-all cursor-pointer

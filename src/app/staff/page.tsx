@@ -101,11 +101,10 @@ export default function StaffPage() {
 
     const searchLower = debouncedSearch.toLowerCase()
     return allStaff.filter(staff =>
-      staff.name?.toLowerCase().includes(searchLower) ||
+      staff.staff_name?.toLowerCase().includes(searchLower) ||
       staff.email?.toLowerCase().includes(searchLower) ||
-      staff.phone_number?.toLowerCase().includes(searchLower) ||
-      staff.department?.toLowerCase().includes(searchLower) ||
-      staff.designation?.toLowerCase().includes(searchLower) ||
+      staff.contact_number?.toLowerCase().includes(searchLower) ||
+      staff.department_name?.toLowerCase().includes(searchLower) ||
       staff.staff_id?.toLowerCase().includes(searchLower)
     )
   }
@@ -133,19 +132,18 @@ export default function StaffPage() {
   const handleExportStaff = () => {
     try {
       // Export filtered results
-      const headers = ['Staff ID', 'Name', 'Email', 'Phone Number', 'Department', 'Designation', 'Qualification', 'Experience (Years)', 'Status']
+      const headers = ['Staff ID', 'Name', 'Email', 'Contact Number', 'Department', 'Status', 'Created Date', 'Last Updated']
       const csvContent = [
         headers.join(','),
         ...filteredStaff.map(staff => [
           staff.staff_id,
-          `"${staff.name}"`,
+          `"${staff.staff_name}"`,
           staff.email,
-          staff.phone_number,
-          `"${staff.department}"`,
-          `"${staff.designation}"`,
-          `"${staff.qualification}"`,
-          staff.experience_years,
-          staff.status
+          staff.contact_number,
+          `"${staff.department_name}"`,
+          staff.status || (staff.IsActive ? 'active' : 'inactive'),
+          staff.CreatedDate || '',
+          staff.UpdatedTime || ''
         ].join(','))
       ].join('\n')
 

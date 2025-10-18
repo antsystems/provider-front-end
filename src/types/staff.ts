@@ -1,25 +1,24 @@
 export interface Staff {
-  id: string;
   staff_id: string;
-  name: string;
-  phone_number: string;
+  staff_name: string;
+  staff_code: string;
+  contact_number: string;
   email: string;
-  department: string;
+  department_name: string;
   department_id: string;
-  designation: string;
-  qualification: string;
-  experience_years: number;
   hospital_id: string;
   hospital_name: string;
   status: 'active' | 'inactive';
-  created_at: string;
-  created_by: string;
-  created_by_email: string;
-  created_by_name: string;
-  updated_at: string;
-  updated_by: string;
-  updated_by_email: string;
-  updated_by_name: string;
+  IsActive: number;
+  CreatedBy: string;
+  CreatedByEmail: string;
+  CreatedDate: string;
+  EditedBy: string;
+  EditedByEmail: string;
+  EditedDate: string;
+  UpdatedBy: string;
+  UpdatedByEmail: string;
+  UpdatedTime: string;
 }
 
 export interface Pagination {

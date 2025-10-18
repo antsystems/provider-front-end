@@ -76,19 +76,25 @@ export function SpecialtyMultiSelect({
               <span className="text-muted-foreground">Select specialties...</span>
             ) : (
               <>
-                {selectedSpecialties.slice(0, 3).map((specialty) => (
-                  <Badge
-                    key={specialty.specialty_id}
-                    variant="secondary"
-                    className="gap-1"
-                  >
-                    {specialty.specialty_name}
-                    <X
-                      className="h-3 w-3 cursor-pointer hover:text-destructive"
-                      onClick={(e) => removeSpecialty(specialty.specialty_id, e)}
-                    />
-                  </Badge>
-                ))}
+                {selectedSpecialties
+                  .filter(specialty => specialty && (specialty.specialty_id || specialty.id))
+                  .slice(0, 3)
+                  .map((specialty) => {
+                    const id = specialty.specialty_id || specialty.id;
+                    return (
+                      <Badge
+                        key={id}
+                        variant="secondary"
+                        className="gap-1"
+                      >
+                        {specialty.specialty_name}
+                        <X
+                          className="h-3 w-3 cursor-pointer hover:text-destructive"
+                          onClick={(e) => removeSpecialty(id, e)}
+                        />
+                      </Badge>
+                    );
+                  })}
                 {selectedSpecialties.length > 3 && (
                   <Badge variant="secondary">
                     +{selectedSpecialties.length - 3} more
@@ -106,30 +112,33 @@ export function SpecialtyMultiSelect({
           <CommandList className="max-h-[300px]">
             <CommandEmpty>No specialty found.</CommandEmpty>
             <CommandGroup>
-              {specialties.map((specialty) => {
-                const isSelected = selectedIds.has(specialty.specialty_id)
-                return (
-                  <CommandItem
-                    key={specialty.specialty_id}
-                    value={specialty.specialty_name}
-                    onSelect={() => toggleSpecialty(specialty.specialty_id)}
-                    className="cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        isSelected ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium">{specialty.specialty_name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {specialty.specialty_code}
+              {specialties
+                .filter(specialty => specialty && specialty.specialty_id)
+                .map((specialty) => {
+                  const id = specialty.specialty_id || specialty.id;
+                  const isSelected = selectedIds.has(id);
+                  return (
+                    <CommandItem
+                      key={id}
+                      value={specialty.specialty_name}
+                      onSelect={() => toggleSpecialty(id)}
+                      className="cursor-pointer"
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          isSelected ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium">{specialty.specialty_name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {specialty.specialty_code}
+                        </div>
                       </div>
-                    </div>
-                  </CommandItem>
-                )
-              })}
+                    </CommandItem>
+                  )
+                })}
             </CommandGroup>
           </CommandList>
         </Command>

@@ -262,23 +262,29 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/60 focus:bg-muted/60 transition-colors">
                 <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary group-focus:text-primary" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="glass-card border-0">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(doctor.doctor_id)}>
+              <DropdownMenuItem 
+                onClick={() => navigator.clipboard.writeText(doctor.doctor_id)}
+                className="hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+              >
                 Copy Doctor ID
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleViewDoctor(doctor)} className="flex items-center gap-2">
+              <DropdownMenuItem 
+                onClick={() => handleViewDoctor(doctor)} 
+                className="flex items-center gap-2 hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+              >
                 <Eye className="h-4 w-4" />
                 View/Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleDeleteDoctor(doctor.doctor_id)}
-                className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                className="flex items-center gap-2 text-red-600 hover:text-red-600 focus:text-red-600 hover:bg-red-50/50 focus:bg-red-50/50"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -304,14 +310,6 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
   return (
     <>
       <div className="space-y-4">
-        {/* Header with Add Doctor Button */}
-        <div className="flex items-center justify-between">
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Doctor
-          </Button>
-        </div>
-
         {/* Bulk Actions Bar */}
         {selectedRows.length > 0 && (
           <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
@@ -343,6 +341,12 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
             doctor_code: false,
             UpdatedTime: false
           }}
+          actionButton={
+            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Doctor
+            </Button>
+          }
         />
       </div>
 

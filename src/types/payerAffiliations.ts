@@ -4,12 +4,9 @@ export interface PayerAffiliation {
   payer_name: string;
   payer_type: string;
   payer_code: string;
-  hospital_id: string;
-  created_by: string;
-  created_by_email: string;
-  created_on: string;
-  updated_on?: string;
-  status: 'active' | 'inactive';
+  affiliated_by: string;
+  affiliated_by_email: string;
+  affiliated_at: string;
 }
 
 export interface PayerAffiliationsResponse {
@@ -133,7 +130,7 @@ export const PAYER_AFFILIATION_STATUS_OPTIONS = [
 // Common payer types
 export const PAYER_TYPES = [
   'TPA',
-  'INSURANCE COMPANY',
+  'Insurance Company',
   'Government',
   'Corporate',
   'Other'

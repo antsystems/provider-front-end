@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import MainLayout from '@/components/layout/MainLayout'
 import PayerAffiliationsTable from '@/components/tables/PayerAffiliationsTable'
 import { payerAffiliationsApi } from '@/services/payerAffiliationsApi'
-import { PayerAffiliation, PAYER_AFFILIATION_STATUS_OPTIONS, PAYER_TYPES } from '@/types/payerAffiliations'
+import { PayerAffiliation, PAYER_TYPES } from '@/types/payerAffiliations'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -24,7 +24,7 @@ export default function PayerAffiliationsPage() {
   const { user } = useAuth()
   const [affiliations, setAffiliations] = useState<PayerAffiliation[]>([])
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  // No longer needed: const [statusFilter, setStatusFilter] = useState<string>('all')
   const [payerTypeFilter, setPayerTypeFilter] = useState<string>('all')
 
   const fetchAffiliations = async () => {
@@ -47,17 +47,14 @@ export default function PayerAffiliationsPage() {
   // Client-side filtering
   const filteredAffiliations = useMemo(() => {
     return affiliations.filter(affiliation => {
-      const statusMatch = statusFilter === 'all' || affiliation.status === statusFilter
       const typeMatch = payerTypeFilter === 'all' || affiliation.payer_type === payerTypeFilter
-      return statusMatch && typeMatch
+      return typeMatch
     })
-  }, [affiliations, statusFilter, payerTypeFilter])
+  }, [affiliations, payerTypeFilter])
 
   // Statistics
   const stats = useMemo(() => {
     const totalAffiliations = affiliations.length
-    const activeAffiliations = affiliations.filter(a => a.status === 'active').length
-    const inactiveAffiliations = affiliations.filter(a => a.status === 'inactive').length
 
     const payerTypeBreakdown = PAYER_TYPES.reduce((acc, type) => {
       acc[type] = affiliations.filter(a => a.payer_type === type).length
@@ -66,8 +63,6 @@ export default function PayerAffiliationsPage() {
 
     return {
       total: totalAffiliations,
-      active: activeAffiliations,
-      inactive: inactiveAffiliations,
       payerTypes: payerTypeBreakdown
     }
   }, [affiliations])
@@ -79,15 +74,14 @@ export default function PayerAffiliationsPage() {
     }
 
     const csvData = [
-      ['ID', 'Payer Name', 'Payer Code', 'Payer Type', 'Status', 'Created By', 'Created On'].join(','),
+      ['ID', 'Payer Name', 'Payer Code', 'Payer Type', 'Affiliated By', 'Affiliated On'].join(','),
       ...filteredAffiliations.map(affiliation => [
         affiliation.id,
         `"${affiliation.payer_name}"`,
         affiliation.payer_code,
         affiliation.payer_type,
-        affiliation.status,
-        affiliation.created_by_email,
-        new Date(affiliation.created_on).toLocaleDateString()
+        affiliation.affiliated_by_email,
+        new Date(affiliation.affiliated_at).toLocaleDateString()
       ].join(','))
     ].join('\n')
 
@@ -105,11 +99,10 @@ export default function PayerAffiliationsPage() {
   }
 
   const clearFilters = () => {
-    setStatusFilter('all')
     setPayerTypeFilter('all')
   }
 
-  const hasActiveFilters = statusFilter !== 'all' || payerTypeFilter !== 'all'
+  const hasActiveFilters = payerTypeFilter !== 'all'
 
   return (
     <MainLayout>
@@ -165,40 +158,39 @@ export default function PayerAffiliationsPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Affiliations</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium">TPA Count</CardTitle>
+              <Building className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+              <div className="text-2xl font-bold text-blue-600">{stats.payerTypes['TPA'] || 0}</div>
               <p className="text-xs text-muted-foreground">
-                Available for claims
+                Third Party Administrators
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inactive Affiliations</CardTitle>
-              <FileText className="h-4 w-4 text-gray-600" />
+              <CardTitle className="text-sm font-medium">Insurance Companies</CardTitle>
+              <FileText className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-600">{stats.inactive}</div>
+              <div className="text-2xl font-bold text-purple-600">{stats.payerTypes['Insurance Company'] || 0}</div>
               <p className="text-xs text-muted-foreground">
-                Not available
+                Direct Insurance Providers
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Payer Types</CardTitle>
+              <CardTitle className="text-sm font-medium">All Payer Types</CardTitle>
               <Building className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
                 {Object.entries(stats.payerTypes)
                   .filter(([_, count]) => count > 0)
-                  .slice(0, 2)
                   .map(([type, count]) => (
                     <div key={type} className="flex justify-between text-sm">
                       <span>{type}</span>
@@ -229,24 +221,7 @@ export default function PayerAffiliationsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    {PAYER_AFFILIATION_STATUS_OPTIONS.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Payer Type</label>
                 <Select value={payerTypeFilter} onValueChange={setPayerTypeFilter}>
@@ -277,24 +252,13 @@ export default function PayerAffiliationsPage() {
         </Card>
 
         {/* Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Payer Affiliations</CardTitle>
-            <CardDescription>
-              {user?.role === 'hospital_admin'
-                ? 'Manage all payer affiliations for your hospital'
-                : 'View payer affiliations for your hospital'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PayerAffiliationsTable
-              affiliations={filteredAffiliations}
-              loading={loading}
-              onRefresh={fetchAffiliations}
-            />
-          </CardContent>
-        </Card>
+      
+        <PayerAffiliationsTable
+          affiliations={filteredAffiliations}
+          loading={loading}
+          onRefresh={fetchAffiliations}
+        />
+        
       </div>
     </MainLayout>
   )

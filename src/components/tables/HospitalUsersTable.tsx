@@ -77,7 +77,7 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
   }
 
   const getSelectedUsers = () => {
-    return users.filter(user => selectedRows.includes(user.user_id))
+    return users.filter(user => selectedRows.includes(user.user_id || user.uid || ''))
   }
 
   const formatDate = (dateString: string) => {
@@ -101,8 +101,15 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
     }
   }
 
-  const getRoleBadge = (roles: string[]) => {
-    const primaryRole = roles[0] || 'user'
+  const getRoleBadge = (roles: string[] | string | undefined) => {
+    let primaryRole: string
+    
+    if (Array.isArray(roles)) {
+      primaryRole = roles[0] || 'user'
+    } else {
+      primaryRole = roles || 'user'
+    }
+
     const roleLabels = {
       'hospital_admin': 'Admin',
       'hospital_user': 'User',
@@ -130,7 +137,7 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
           onChange={(e) => {
             table.toggleAllPageRowsSelected(!!e.target.checked)
             if (e.target.checked) {
-              setSelectedRows(table.getRowModel().rows.map(r => r.original.user_id))
+              setSelectedRows(table.getRowModel().rows.map(r => r.original.user_id || r.original.uid || '').filter(Boolean))
             } else setSelectedRows([])
           }}
           className="w-4 h-4 rounded border border-border"
@@ -139,10 +146,11 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
       cell: ({ row }) => (
         <input
           type="checkbox"
-          checked={selectedRows.includes(row.original.user_id)}
+          checked={selectedRows.includes(row.original.user_id || row.original.uid || '')}
           onChange={(e) => {
-            if (e.target.checked) setSelectedRows(prev => [...prev, row.original.user_id])
-            else setSelectedRows(prev => prev.filter(id => id !== row.original.user_id))
+            const userId = row.original.user_id || row.original.uid || '';
+            if (e.target.checked) setSelectedRows(prev => [...prev, userId])
+            else setSelectedRows(prev => prev.filter(id => id !== userId))
           }}
           className="w-4 h-4 rounded border border-border"
         />
@@ -151,38 +159,48 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
       enableHiding: false,
     },
     {
-      accessorKey: 'user_id',
+      accessorFn: (row) => row.auto_id || row.uid || row.firebase_uid,
+      id: 'userId',
       header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent">
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors">
           User ID
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div className="font-mono text-sm font-medium">{row.getValue('user_id')}</div>,
+      cell: ({ row }) => {
+        const userId = row.original.auto_id || row.original.uid || row.original.firebase_uid;
+        return <div className="font-mono text-sm font-medium">{userId || '—'}</div>
+      },
       meta: {
         displayName: 'User ID'
       }
     },
     {
-      accessorKey: 'name',
+      accessorFn: (row) => row.name || row.displayName,
+      id: 'name',
       header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent">
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors">
           User
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div className="p-1.5 rounded-full bg-primary/10">
-            <UserCheck className="h-3 w-3 text-primary" />
-          </div>
           <div>
             <div className="font-medium text-foreground hover:text-primary cursor-pointer transition-colors">
-              {row.getValue('name')}
+              {row.original.name || row.original.displayName || '—'}
             </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Mail className="h-3 w-3" />
-              {row.original.email}
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Mail className="h-3 w-3" />
+                {row.original.email}
+              </div>
+              {row.original.employee_id && (
+                <div className="flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  Employee ID: {row.original.employee_id}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -191,13 +209,23 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
     {
       accessorKey: 'roles',
       header: 'Role',
-      cell: ({ row }) => getRoleBadge(row.getValue('roles'))
+      cell: ({ row }) => {
+        // Use type assertion to handle both array and string cases
+        const roles = (row.getValue('roles') || row.original.role) as string[] | string;
+        return getRoleBadge(roles);
+      }
     },
     {
-      accessorKey: 'phone_number',
-      header: 'Contact',
+      accessorFn: (row) => row.phone_number || row.mobile,
+      id: 'contact',
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors">
+          Contact
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
-        const phone = row.getValue('phone_number') as string
+        const phone = row.original.phone_number || row.original.mobile
         return phone ? (
           <div className="flex items-center gap-1 text-sm">
             <Phone className="h-3 w-3 text-gray-400" />
@@ -214,10 +242,16 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
       cell: ({ row }) => getStatusBadge(row.getValue('status'))
     },
     {
-      accessorKey: 'updated_on',
-      header: 'Last Updated',
+      accessorFn: (row) => row.updated_at || row.updatedAt || row.createdAt || row.created_at,
+      id: 'lastUpdated',
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors">
+          Last Updated
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
-        const updatedTime = row.getValue('updated_on') as string
+        const updatedTime = row.original.updated_at || row.original.updatedAt || row.original.createdAt || row.original.created_at || ''
         return <div className="text-muted-foreground">{formatDate(updatedTime)}</div>
       },
       meta: {
@@ -234,27 +268,37 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/60 focus:bg-muted/60 transition-colors">
                 <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary group-focus:text-primary" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="glass-card border-0">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.user_id)}>
-                Copy User ID
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.email)}>
+              {(user.user_id || user.uid) && (
+                <DropdownMenuItem 
+                  onClick={() => navigator.clipboard.writeText(user.user_id || user.uid || '')}
+                  className="hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+                >
+                  Copy User ID
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem 
+                onClick={() => navigator.clipboard.writeText(user.email)}
+                className="hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+              >
                 Copy Email
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleViewUser(user)} className="flex items-center gap-2">
+              <DropdownMenuItem 
+                onClick={() => handleViewUser(user)} 
+                className="flex items-center gap-2 hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground">
                 <Eye className="h-4 w-4" />
                 View/Edit
               </DropdownMenuItem>
-              {isPendingPassword && (
+              {isPendingPassword && (user.user_id || user.uid) && (
                 <DropdownMenuItem
-                  onClick={() => handleResendPasswordEmail(user.user_id, user.name, user.email)}
+                  onClick={() => handleResendPasswordEmail(user.user_id || user.uid || '', user.name || '', user.email)}
                   className="flex items-center gap-2 text-blue-600 focus:text-blue-600"
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -283,12 +327,7 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
     <>
       <div className="space-y-4">
         {/* Header with Add User Button */}
-        <div className="flex items-center justify-between">
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Hospital User
-          </Button>
-        </div>
+        
 
         {/* Bulk Actions Bar */}
         {selectedRows.length > 0 && (
@@ -317,14 +356,22 @@ export function HospitalUsersTable({ users, loading, onView, onUpdate, onRefresh
           columns={columns}
           data={users}
           searchKey="name"
-          searchPlaceholder="Search by user name..."
+          searchPlaceholder="Search by name or email..."
           showColumnToggle={true}
           showPagination={true}
           loading={loading}
           initialColumnVisibility={{
-            user_id: false,
+            userId: false,
             updated_on: false
           }}
+          actionButton={
+            <div className="flex items-center justify-between">
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Hospital User
+              </Button>
+            </div>
+          }
         />
       </div>
 

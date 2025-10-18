@@ -53,7 +53,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
 
   const handleDeleteStaff = async (staffId: string) => {
     const staffMember = staff.find(s => s.staff_id === staffId)
-    const staffName = staffMember ? `${staffMember.name}` : 'this staff member'
+    const staffName = staffMember ? `${staffMember.staff_name}` : 'this staff member'
 
     confirmDialog.open({
       title: 'Delete Staff Member',
@@ -159,9 +159,9 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       }
     },
     {
-      accessorKey: 'name',
+      accessorKey: 'staff_name',
       header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent">
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors">
           Staff Member
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -173,7 +173,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
           </div>
           <div>
             <div className="font-medium text-foreground hover:text-primary cursor-pointer transition-colors">
-              {row.getValue('name')}
+              {row.getValue('staff_name')}
             </div>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Mail className="h-3 w-3" />
@@ -184,50 +184,32 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       )
     },
     {
-      accessorKey: 'department',
+      accessorKey: 'department_name',
       header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent">
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors">
           Department
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => (
         <Badge variant="outline" className="bg-purple-50 text-purple-700">
-          {row.getValue('department')}
+          {row.getValue('department_name')}
         </Badge>
       )
     },
     {
-      accessorKey: 'designation',
-      header: 'Designation',
-      cell: ({ row }) => (
-        <div className="text-sm font-medium">
-          {row.getValue('designation')}
-        </div>
-      )
-    },
-    {
-      accessorKey: 'phone_number',
-      header: 'Contact',
+      accessorKey: 'contact_number',
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors">
+          Contact
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }) => (
         <div className="flex items-center gap-1 text-sm">
           <Phone className="h-3 w-3 text-gray-400" />
-          {row.getValue('phone_number')}
+          {row.getValue('contact_number')}
         </div>
-      )
-    },
-    {
-      accessorKey: 'qualification',
-      header: 'Qualification',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.getValue('qualification')}</div>
-      )
-    },
-    {
-      accessorKey: 'experience_years',
-      header: 'Experience',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.getValue('experience_years')} years</div>
       )
     },
     {
@@ -246,10 +228,15 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
       }
     },
     {
-      accessorKey: 'updated_at',
-      header: 'Last Updated',
+      accessorKey: 'UpdatedTime',
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors">
+          Last Updated
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
-        const updatedTime = row.getValue('updated_at') as string
+        const updatedTime = row.getValue('UpdatedTime') as string
         return <div className="text-muted-foreground text-sm">{formatDate(updatedTime)}</div>
       },
       meta: {
@@ -264,23 +251,29 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/60 focus:bg-muted/60 transition-colors">
                 <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary group-focus:text-primary" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="glass-card border-0">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(staff.staff_id)}>
+              <DropdownMenuItem 
+                onClick={() => navigator.clipboard.writeText(staff.staff_id)}
+                className="hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+              >
                 Copy Staff ID
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleViewStaff(staff)} className="flex items-center gap-2">
+              <DropdownMenuItem 
+                onClick={() => handleViewStaff(staff)} 
+                className="flex items-center gap-2 hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+              >
                 <Eye className="h-4 w-4" />
                 View/Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDeleteStaff(staff.id)}
-                className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                onClick={() => handleDeleteStaff(staff.staff_id)}
+                className="flex items-center gap-2 text-red-600 hover:text-red-600 focus:text-red-600 hover:bg-red-50/50 focus:bg-red-50/50"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -306,20 +299,6 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
   return (
     <>
       <div className="space-y-4">
-        {/* Header with Add Staff Button */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Staff Member
-            </Button>
-            <Button onClick={() => setIsBulkUploadOpen(true)} variant="outline" className="gap-2">
-              <Upload className="h-4 w-4" />
-              Bulk Upload
-            </Button>
-          </div>
-        </div>
-
         {/* Bulk Actions Bar */}
         {selectedRows.length > 0 && (
           <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
@@ -341,7 +320,7 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
         <DataTable
           columns={columns}
           data={staff}
-          searchKey="name"
+          searchKey="staff_name"
           searchPlaceholder="Search by staff name..."
           showColumnToggle={true}
           showPagination={true}
@@ -351,6 +330,20 @@ export function StaffTable({ staff, loading, onView, onUpdate, onDelete, onRefre
             experience_years: false,
             updated_at: false
           }}
+          actionButton={
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Staff Member
+                </Button>
+                <Button onClick={() => setIsBulkUploadOpen(true)} variant="outline" className="gap-2">
+                  <Upload className="h-4 w-4" />
+                  Bulk Upload
+                </Button>
+              </div>
+            </div>
+          }
         />
       </div>
 

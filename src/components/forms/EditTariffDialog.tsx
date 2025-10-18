@@ -9,6 +9,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -27,6 +29,9 @@ import {
   Plus,
   Edit2,
   Trash2,
+  Building2,
+  Shield,
+  X,
 } from 'lucide-react'
 import { Tariff } from '@/types/tariffs'
 import { tariffsApi } from '@/services/tariffsApi'
@@ -34,7 +39,6 @@ import { toast } from 'sonner'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import AddLineItemDialog from './AddLineItemDialog'
 import AddPayerMappingDialog from './AddPayerMappingDialog'
-import EditLineItemDialog from './EditLineItemDialog'
 
 interface EditTariffDialogProps {
   open: boolean
@@ -98,7 +102,6 @@ export default function EditTariffDialog({
           await tariffsApi.deleteLineItem(tariff.tariff_id, lineItemId)
           toast.success('Line item deleted successfully')
 
-          // Refresh tariff data
           const response = await tariffsApi.getTariffById(tariff.tariff_id)
           setTariff(response.tariff)
           onUpdate?.()
@@ -113,41 +116,44 @@ export default function EditTariffDialog({
   }
 
   const handleDeletePayerMapping = async (payerId: string) => {
-    if (!confirm('Are you sure you want to remove this payer mapping?')) return
+    confirmDialog.open({
+      title: 'Remove Payer Mapping',
+      description: 'Are you sure you want to remove this payer mapping? This action cannot be undone.',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          setDeletingPayer(payerId)
+          await tariffsApi.deletePayerMapping(tariff.id, payerId)
+          toast.success('Payer mapping removed successfully')
 
-    try {
-      setDeletingPayer(payerId)
-      await tariffsApi.deletePayerMapping(tariff.id, payerId)
-      toast.success('Payer mapping removed successfully')
-
-      // Refresh tariff data
-      const response = await tariffsApi.getTariffById(tariff.tariff_id)
-      setTariff(response.tariff)
-      onUpdate?.()
-    } catch (error) {
-      console.error('Error removing payer mapping:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to remove payer mapping')
-    } finally {
-      setDeletingPayer(null)
-    }
+          const response = await tariffsApi.getTariffById(tariff.tariff_id)
+          setTariff(response.tariff)
+          onUpdate?.()
+        } catch (error) {
+          console.error('Error removing payer mapping:', error)
+          toast.error(error instanceof Error ? error.message : 'Failed to remove payer mapping')
+        } finally {
+          setDeletingPayer(null)
+        }
+      }
+    })
   }
 
   const handleLineItemAdded = async () => {
-    // Refresh tariff data
     const response = await tariffsApi.getTariffById(tariff.tariff_id)
     setTariff(response.tariff)
     onUpdate?.()
   }
 
   const handlePayerMappingAdded = async () => {
-    // Refresh tariff data
     const response = await tariffsApi.getTariffById(tariff.tariff_id)
     setTariff(response.tariff)
     onUpdate?.()
   }
 
   const handleLineItemUpdated = async () => {
-    // Refresh tariff data
     const response = await tariffsApi.getTariffById(tariff.tariff_id)
     setTariff(response.tariff)
     setEditingLineItem(null)
@@ -166,8 +172,7 @@ export default function EditTariffDialog({
           setDeletingTariff(true)
           await tariffsApi.deleteTariff(tariff.tariff_id)
           toast.success(`Tariff "${tariff.tariff_name}" deleted successfully`)
-          
-          // Close dialog and refresh parent list
+
           onOpenChange(false)
           onUpdate?.()
         } catch (error) {
@@ -183,47 +188,36 @@ export default function EditTariffDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
           <DialogHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <DialogTitle className="flex items-center gap-2 text-2xl">
-                  <FileText className="h-6 w-6 text-primary" />
-                  {tariff.tariff_name}
-                </DialogTitle>
-                <DialogDescription className="mt-2 font-mono text-sm">
-                  {tariff.tariff_id}
-                </DialogDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                {getStatusBadge(tariff.status)}
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteTariff}
-                  disabled={deletingTariff}
-                  className="gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {deletingTariff ? 'Deleting...' : 'Delete Tariff'}
-                </Button>
-              </div>
-            </div>
+            <DialogTitle className="flex items-center gap-3 text-2xl">
+              <FileText className="h-6 w-6 text-primary" />
+              {tariff.tariff_name}
+              {getStatusBadge(tariff.status)}
+            </DialogTitle>
+            <DialogDescription className="mt-2 font-mono text-sm">
+              {tariff.tariff_id}
+            </DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="info" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="info">Basic Info</TabsTrigger>
+              <TabsTrigger value="info">
+                <Building className="h-4 w-4 mr-2" />
+                Basic Info
+              </TabsTrigger>
               <TabsTrigger value="lineitems">
+                <IndianRupee className="h-4 w-4 mr-2" />
                 Line Items ({tariff.line_items.length})
               </TabsTrigger>
               <TabsTrigger value="payers">
+                <MapPin className="h-4 w-4 mr-2" />
                 Payers ({tariff.payer_mappings.length})
               </TabsTrigger>
             </TabsList>
 
             {/* Basic Information Tab */}
-            <TabsContent value="info" className="space-y-4">
+            <TabsContent value="info" className="space-y-4 mt-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -285,7 +279,7 @@ export default function EditTariffDialog({
             </TabsContent>
 
             {/* Line Items Tab */}
-            <TabsContent value="lineitems" className="space-y-4">
+            <TabsContent value="lineitems" className="space-y-4 mt-4">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -294,76 +288,165 @@ export default function EditTariffDialog({
                       Line Items ({tariff.line_items.length})
                     </CardTitle>
                     <Button size="sm" onClick={() => setAddLineItemOpen(true)}>
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus className="h-4 w-4 mr-2" />
                       Add Line Item
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {tariff.line_items.length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <IndianRupee className="mx-auto h-12 w-12 mb-4 opacity-20" />
+                    <div className="text-center py-8 text-muted-foreground">
+                      <IndianRupee className="mx-auto h-12 w-12 mb-3 opacity-30" />
                       <p>No line items found</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-4"
-                        onClick={() => setAddLineItemOpen(true)}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add First Line Item
-                      </Button>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {tariff.line_items.map((item, index) => (
-                        <div
-                          key={item.id || `line-item-${index}`}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                  ) : editingLineItem ? (
+                    /* Edit Form */
+                    <div className="space-y-4 p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-medium flex items-center gap-2">
+                          <Edit2 className="h-4 w-4" />
+                          Edit Line Item
+                        </h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingLineItem(null)}
                         >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <Badge variant="outline" className="font-mono">
-                                {item.code}
-                              </Badge>
-                              <div>
-                                <div className="font-medium">{item.line_item}</div>
-                                {item.description && (
-                                  <div className="text-sm text-muted-foreground">
-                                    {item.description}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault()
+                          const formData = new FormData(e.currentTarget)
+                          const updatedItem = {
+                            ...editingLineItem,
+                            code: formData.get('code') as string,
+                            line_item: formData.get('line_item') as string,
+                            amount: parseFloat(formData.get('amount') as string),
+                            description: formData.get('description') as string,
+                          }
+
+                          try {
+                            await tariffsApi.updateLineItem(
+                              tariff.tariff_id,
+                              editingLineItem.id,
+                              updatedItem
+                            )
+                            toast.success('Line item updated successfully')
+                            handleLineItemUpdated()
+                          } catch (error) {
+                            console.error('Error updating line item:', error)
+                            toast.error(
+                              error instanceof Error
+                                ? error.message
+                                : 'Failed to update line item'
+                            )
+                          }
+                        }}
+                        className="space-y-4"
+                      >
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="code">Code *</Label>
+                            <Input
+                              id="code"
+                              name="code"
+                              defaultValue={editingLineItem.code}
+                              required
+                              className="font-mono"
+                            />
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <div className="font-semibold text-lg">
-                                {formatCurrency(item.amount)}
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingLineItem(item)}
-                                title="Edit line item"
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteLineItem(item.line_item)}
-                                disabled={deletingLineItem === item.id}
-                                title="Delete line item"
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
+                          <div className="grid gap-2">
+                            <Label htmlFor="line_item">Item Name *</Label>
+                            <Input
+                              id="line_item"
+                              name="line_item"
+                              defaultValue={editingLineItem.line_item}
+                              required
+                            />
                           </div>
                         </div>
-                      ))}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="amount">Amount (₹) *</Label>
+                            <Input
+                              id="amount"
+                              name="amount"
+                              type="number"
+                              step="0.01"
+                              defaultValue={editingLineItem.amount}
+                              required
+                            />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Input
+                              id="description"
+                              name="description"
+                              defaultValue={editingLineItem.description}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setEditingLineItem(null)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit">Update</Button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : (
+                    /* Table View */
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-3 font-medium text-sm">Code</th>
+                            <th className="text-left py-2 px-3 font-medium text-sm">Item</th>
+                            <th className="text-left py-2 px-3 font-medium text-sm">Description</th>
+                            <th className="text-right py-2 px-3 font-medium text-sm">Amount</th>
+                            <th className="text-right py-2 px-3 font-medium text-sm">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {tariff.line_items.map((item, index) => (
+                            <tr key={item.id || index} className="border-b hover:bg-muted/50">
+                              <td className="py-2 px-3 font-mono text-sm">{item.code}</td>
+                              <td className="py-2 px-3 font-medium">{item.line_item}</td>
+                              <td className="py-2 px-3 text-sm text-muted-foreground">
+                                {item.description || '-'}
+                              </td>
+                              <td className="py-2 px-3 text-right font-semibold">
+                                {formatCurrency(item.amount)}
+                              </td>
+                              <td className="py-2 px-3 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingLineItem(item)}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteLineItem(item.line_item)}
+                                    disabled={deletingLineItem === item.id}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </CardContent>
@@ -371,7 +454,7 @@ export default function EditTariffDialog({
             </TabsContent>
 
             {/* Payer Mappings Tab */}
-            <TabsContent value="payers" className="space-y-4">
+            <TabsContent value="payers" className="space-y-4 mt-4">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -380,55 +463,71 @@ export default function EditTariffDialog({
                       Payer Mappings ({tariff.payer_mappings.length})
                     </CardTitle>
                     <Button size="sm" onClick={() => setAddPayerMappingOpen(true)}>
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus className="h-4 w-4 mr-2" />
                       Map Payers
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {tariff.payer_mappings.length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <MapPin className="mx-auto h-12 w-12 mb-4 opacity-20" />
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MapPin className="mx-auto h-12 w-12 mb-3 opacity-30" />
                       <p>No payer mappings found</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-4"
-                        onClick={() => setAddPayerMappingOpen(true)}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Map First Payer
-                      </Button>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {tariff.payer_mappings.map((mapping) => (
                         <div
-                          key={`${mapping.payer_id}`}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                          key={mapping.payer_id}
+                          className="flex items-start justify-between p-3 border rounded-lg hover:bg-muted/50"
                         >
                           <div className="flex-1">
-                            <div className="font-medium">{mapping.payer_name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              ID: {mapping.payer_id} | Type: {mapping.payer_type}
+                            <div className="flex items-center gap-2 mb-1">
+                              {mapping.payer_type === 'TPA' && (
+                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              {mapping.payer_type === 'Insurance Company' && (
+                                <Shield className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              <span className="font-medium">{mapping.payer_name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {mapping.payer_type}
+                              </Badge>
                             </div>
+                            <div className="text-sm text-muted-foreground">
+                              ID: {mapping.payer_id}
+                            </div>
+                            {mapping.managed_by_tpa && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Managed by: {mapping.managed_by_tpa.payer_name}
+                              </div>
+                            )}
+                            {mapping.affiliated_insurance_companies &&
+                             mapping.affiliated_insurance_companies.length > 0 && (
+                              <div className="mt-2 pl-4 border-l-2 space-y-1">
+                                <div className="text-xs font-medium text-muted-foreground">
+                                  Manages {mapping.affiliated_insurance_companies.length} insurance{' '}
+                                  {mapping.affiliated_insurance_companies.length === 1 ? 'company' : 'companies'}
+                                </div>
+                                {mapping.affiliated_insurance_companies.map((ins) => (
+                                  <div key={ins.payer_id} className="text-xs text-muted-foreground">
+                                    • {ins.payer_name}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                             <div className="text-xs text-muted-foreground mt-1">
                               Mapped: {formatDate(mapping.mapped_at)}
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <Badge variant="outline">{mapping.payer_type}</Badge>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeletePayerMapping(mapping.payer_id)}
-                              disabled={deletingPayer === mapping.payer_id}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeletePayerMapping(mapping.payer_id)}
+                            disabled={deletingPayer === mapping.payer_id}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -439,7 +538,15 @@ export default function EditTariffDialog({
           </Tabs>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
+          <div className="flex justify-between gap-2 pt-4 border-t">
+            <Button
+              variant="destructive"
+              onClick={handleDeleteTariff}
+              disabled={deletingTariff}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {deletingTariff ? 'Deleting...' : 'Delete Tariff'}
+            </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
@@ -461,15 +568,6 @@ export default function EditTariffDialog({
         onOpenChange={setAddPayerMappingOpen}
         tariffId={tariff.tariff_id}
         onSuccess={handlePayerMappingAdded}
-      />
-
-      {/* Edit Line Item Dialog */}
-      <EditLineItemDialog
-        open={!!editingLineItem}
-        onOpenChange={(open) => !open && setEditingLineItem(null)}
-        tariffId={tariff.tariff_id}
-        lineItem={editingLineItem}
-        onSuccess={handleLineItemUpdated}
       />
     </>
   )

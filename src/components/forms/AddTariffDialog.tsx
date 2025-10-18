@@ -22,9 +22,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CreateTariffRequest } from '@/types/tariffs'
 import { tariffsApi } from '@/services/tariffsApi'
-import { FileText, Calendar, Plus, Trash2, IndianRupee } from 'lucide-react'
+import { FileText, Calendar, Plus, Trash2, IndianRupee, Info } from 'lucide-react'
 import { toast } from 'sonner'
 
 const lineItemSchema = z.object({
@@ -347,6 +348,14 @@ export default function AddTariffDialog({
                 ))}
               </CardContent>
             </Card>
+
+            {/* Info about payer mappings */}
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Next step:</strong> After creating this tariff, you can map payers (including TPAs with insurance company relationships) in the edit dialog.
+              </AlertDescription>
+            </Alert>
 
             {/* Form Actions */}
             <div className="flex justify-end gap-2 pt-4 border-t">

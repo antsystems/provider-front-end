@@ -214,27 +214,36 @@ export function DepartmentsTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/60 focus:bg-muted/60 transition-colors">
                 <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary group-focus:text-primary" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="glass-card border-0">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(department.id)}>
+              <DropdownMenuItem 
+                onClick={() => navigator.clipboard.writeText(department.id)}
+                className="hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+              >
                 Copy Department ID
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(department.department_name)}>
+              <DropdownMenuItem 
+                onClick={() => navigator.clipboard.writeText(department.department_name)}
+                className="hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+              >
                 Copy Department Name
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleViewDepartment(department)} className="flex items-center gap-2">
+              <DropdownMenuItem 
+                onClick={() => handleViewDepartment(department)} 
+                className="flex items-center gap-2 hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
+              >
                 <Eye className="h-4 w-4" />
                 View/Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleDeleteDepartment(department.id, department.department_name)}
-                className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                className="flex items-center gap-2 text-red-600 hover:text-red-600 focus:text-red-600 hover:bg-red-50/50 focus:bg-red-50/50"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -261,14 +270,7 @@ export function DepartmentsTable({
     <>
       <div className="space-y-4">
         {/* Header with Add Department Button */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Department
-            </Button>
-          </div>
-        </div>
+        
 
         <DataTable
           columns={columns}
@@ -282,6 +284,16 @@ export function DepartmentsTable({
             created_at: false,
             updated_at: false
           }}
+          actionButton={
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Department
+                  </Button>
+                </div>
+              </div>
+          }
         />
 
         {/* Pagination Controls */}

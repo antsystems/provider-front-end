@@ -333,9 +333,9 @@ export default function SpecialtiesPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>All Specialties (Virtualized)</CardTitle>
+                    <CardTitle>All Specialties</CardTitle>
                     <CardDescription>
-                      Scroll through all specialties - only visible items are rendered for performance
+                      Scroll through all specialties and select those relevant to your hospital
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">

@@ -285,31 +285,19 @@ export default function DepartmentsPage() {
           </CardContent>
         </Card>
 
-        {/* Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Departments</CardTitle>
-            <CardDescription>
-              {user?.role === 'hospital_admin'
-                ? 'Manage all departments for your hospital'
-                : 'View departments for your hospital'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DepartmentsTable
-              departments={filteredDepartments}
-              loading={loading}
-              onRefresh={() => fetchDepartments(currentPage)}
-              pagination={{
-                currentPage,
-                totalPages,
-                totalItems,
-                onPageChange: fetchDepartments,
-              }}
-            />
-          </CardContent>
-        </Card>
+
+        <DepartmentsTable
+          departments={filteredDepartments}
+          loading={loading}
+          onRefresh={() => fetchDepartments(currentPage)}
+          pagination={{
+            currentPage,
+            totalPages,
+            totalItems,
+            onPageChange: fetchDepartments,
+          }}
+        />
+        
       </div>
     </MainLayout>
   )

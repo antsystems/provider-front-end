@@ -72,14 +72,25 @@ export default function TariffsPage() {
     setDetailsDialogOpen(true)
   }
 
-  // Get unique payer names from tariff payer mappings
-  const uniquePayerNames = Array.from(
-    new Set(
+  // Get unique payer entries from tariff payer mappings
+  const uniquePayers = Array.from(
+    new Map(
       tariffs.flatMap(tariff =>
-        tariff.payer_mappings.map(mapping => mapping.payer_name)
+        // Filter out any mappings with missing id or name
+        tariff.payer_mappings
+          .filter(mapping => mapping?.payer_id && mapping?.payer_name)
+          .map(mapping => [
+            mapping.payer_id,
+            { id: mapping.payer_id, name: mapping.payer_name }
+          ])
       )
-    )
-  ).sort()
+    ).values()
+  ).sort((a, b) => {
+    // Provide safe fallback for sort comparison
+    const nameA = a?.name || ''
+    const nameB = b?.name || ''
+    return nameA.localeCompare(nameB)
+  })
 
   const filteredTariffs = tariffs.filter(tariff => {
     // Status filter
@@ -195,9 +206,9 @@ export default function TariffsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Payers</SelectItem>
-                      {uniquePayerNames.map((payerName) => (
-                        <SelectItem key={payerName} value={payerName}>
-                          {payerName}
+                      {uniquePayers.map((payer) => (
+                        <SelectItem key={payer.id} value={payer.name}>
+                          {payer.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -248,24 +259,15 @@ export default function TariffsPage() {
         </Card>
 
         {/* Tariffs Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tariffs</CardTitle>
-            <CardDescription>
-              Manage hospital tariffs, pricing, and payer mappings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TariffsTable
-              tariffs={filteredTariffs}
-              loading={loading}
-              onView={handleViewDetails}
-              onAddClick={() => setAddDialogOpen(true)}
-              onBulkUploadClick={() => setBulkUploadDialogOpen(true)}
-            />
-          </CardContent>
-        </Card>
-
+       
+        <TariffsTable
+          tariffs={filteredTariffs}
+          loading={loading}
+          onView={handleViewDetails}
+          onAddClick={() => setAddDialogOpen(true)}
+          onBulkUploadClick={() => setBulkUploadDialogOpen(true)}
+        />
+          
         {/* Bulk Upload Dialog */}
         <BulkUploadTariffDialog
           open={bulkUploadDialogOpen}

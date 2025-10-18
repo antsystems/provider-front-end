@@ -17,6 +17,8 @@ import {
   CreatePayerMappingResponse,
   BulkCreatePayerMappingsRequest,
   BulkCreatePayerMappingsResponse,
+  BulkCreatePayerMappingsWithRelationshipsRequest,
+  BulkCreatePayerMappingsWithRelationshipsResponse,
   UpdatePayerMappingRequest,
   UpdatePayerMappingResponse,
   DeletePayerMappingResponse,
@@ -403,6 +405,39 @@ class TariffsApiService {
       return data;
     } catch (error) {
       console.error('Failed to bulk add payer mappings:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add multiple payer mappings with TPA relationships to a tariff
+   */
+  async bulkAddPayerMappingsWithRelationships(
+    tariffId: string,
+    payerMappingsData: BulkCreatePayerMappingsWithRelationshipsRequest
+  ): Promise<BulkCreatePayerMappingsWithRelationshipsResponse> {
+    const url = `${this.baseUrl}/tariffs/${tariffId}/payers/bulk-with-relationships`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(payerMappingsData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data: BulkCreatePayerMappingsWithRelationshipsResponse = await response.json();
+
+      // Clear tariffs cache
+      this.clearTariffsCache();
+
+      return data;
+    } catch (error) {
+      console.error('Failed to bulk add payer mappings with relationships:', error);
       throw error;
     }
   }

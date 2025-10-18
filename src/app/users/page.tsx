@@ -42,7 +42,7 @@ export default function HospitalUsersPage() {
       setAllUsers(response.users)
       setFilteredUsers(response.users) // Initially show all
 
-      toast.success(`${response.count} hospital users loaded successfully`)
+      toast.success(`${response.users.length} hospital users loaded successfully`)
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch hospital users'
@@ -65,8 +65,8 @@ export default function HospitalUsersPage() {
 
     // Apply role filter
     if (filters.role && filters.role !== 'all') {
-      filtered = filtered.filter(user =>
-        user.roles.includes(filters.role!) || user.role === filters.role
+      filtered = filtered.filter(user => 
+        user.role === filters.role || user.roles?.includes(filters.role!)
       )
     }
 
@@ -117,7 +117,7 @@ export default function HospitalUsersPage() {
           `"${user.name}"`,
           user.email,
           user.phone_number || '',
-          user.roles.join(';'),
+          user.roles?.join(';') || user.role,
           user.status,
           `"${user.hospital_name}"`,
           user.created_on
@@ -160,7 +160,9 @@ export default function HospitalUsersPage() {
   // Calculate role-based stats
   const getRoleStats = () => {
     const roleStats = USER_ROLES.reduce((acc, role) => {
-      acc[role] = filteredUsers.filter(user => user.roles.includes(role) || user.role === role).length
+      acc[role] = filteredUsers.filter(user => 
+        user.role === role || user.roles?.includes(role)
+      ).length
       return acc
     }, {} as Record<string, number>)
     return roleStats
