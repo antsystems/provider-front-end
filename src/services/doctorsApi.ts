@@ -234,31 +234,77 @@ class DoctorsApiService {
     created_doctors?: string[];
     errors?: Array<{ row: number; error: string }>;
   }> {
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const token = authService.getCurrentToken();
-      if (!token) {
-        throw new Error('No authentication token available');
+      // Parse CSV file
+      const csvText = await file.text();
+      const lines = csvText.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        throw new Error('CSV file must contain at least a header and one data row');
       }
 
-      const response = await fetch(`${this.baseUrl}/doctors/bulk-upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          // Don't set Content-Type for FormData, let browser set it
-        },
-        body: formData,
-      });
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const results = {
+        successful: 0,
+        failed: 0,
+        created_doctors: [] as string[],
+        errors: [] as Array<{ row: number; error: string }>
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      // Process each row
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        
+        if (values.length < 5) {
+          results.failed++;
+          results.errors.push({
+            row: i + 1,
+            error: 'Insufficient data - required: doctor_name, specialty_name, contact_number, email, department_name'
+          });
+          continue;
+        }
+
+        try {
+          // Map CSV columns to doctor fields
+          const doctorData: CreateDoctorRequest = {
+            doctor_name: values[0] || '',
+            specialty_name: values[1] || '',
+            contact_number: values[2] || '',
+            email: values[3] || '',
+            department_name: values[4] || '',
+            qualification: values[5] || undefined,
+          };
+
+          // Validate required fields
+          if (!doctorData.doctor_name || !doctorData.specialty_name || !doctorData.contact_number || !doctorData.email || !doctorData.department_name) {
+            results.failed++;
+            results.errors.push({
+              row: i + 1,
+              error: 'Missing required fields'
+            });
+            continue;
+          }
+
+          // Create doctor using individual API call
+          const response = await this.createDoctor(doctorData);
+          results.successful++;
+          results.created_doctors.push(response.doctor.doctor_id);
+        } catch (error) {
+          results.failed++;
+          results.errors.push({
+            row: i + 1,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
       }
 
-      const data = await response.json();
-      return data;
+      // Generate result message
+      const message = `Bulk upload completed: ${results.successful} successful, ${results.failed} failed`;
+      
+      return {
+        ...results,
+        message
+      };
     } catch (error) {
       console.error('Failed to bulk upload doctors:', error);
       throw error;

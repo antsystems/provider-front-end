@@ -115,6 +115,8 @@ export default function BulkUploadDoctorsDialog({
 
     setIsLoading(true)
     try {
+      toast.info('Starting bulk upload... This may take a few moments.')
+      
       const result = await doctorsApi.bulkUploadDoctors(selectedFile)
 
       setUploadResult({
@@ -129,14 +131,16 @@ export default function BulkUploadDoctorsDialog({
       onSuccess?.()
 
       // Show success/warning based on errors
-      if (!result.errors || result.errors.length === 0) {
-        toast.success(result.message || 'Upload completed successfully!')
+      if (result.failed === 0) {
+        toast.success(`Successfully uploaded ${result.successful} doctors!`)
         setTimeout(() => {
           onOpenChange(false)
           handleReset()
         }, 3000)
+      } else if (result.successful > 0) {
+        toast.warning(`Upload completed: ${result.successful} successful, ${result.failed} failed`)
       } else {
-        toast.warning('Upload completed with some errors')
+        toast.error('Upload failed for all doctors. Please check the errors below.')
       }
     } catch (error) {
       console.error('Error uploading file:', error)
@@ -162,12 +166,13 @@ export default function BulkUploadDoctorsDialog({
 
   const handleDownloadTemplate = () => {
     // Create CSV content with headers and example rows according to the specified template
+    // Note: Using common specialty names that are typically available in most systems
     const csvContent = `doctor_name,specialty_name,contact_number,email,department_name,qualification
 Dr. John Smith,Cardiology,9876543210,john.smith@hospital.com,Cardiology,MBBS MD Cardiology
 Dr. Sarah Johnson,Neurology,9876543211,sarah.j@hospital.com,Neurology,MBBS DM Neurology
 Dr. Michael Brown,Orthopedics,9876543212,michael.b@hospital.com,Orthopedics,MBBS MS Orthopedics
 Dr. Emily Davis,Pediatrics,9876543213,emily.d@hospital.com,Pediatrics,MBBS DCH Pediatrics
-Dr. Robert Wilson,General Medicine,9876543214,robert.w@hospital.com,General Medicine,MBBS MD Medicine`
+Dr. Robert Wilson,Internal Medicine,9876543214,robert.w@hospital.com,Internal Medicine,MBBS MD Medicine`
 
     // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
