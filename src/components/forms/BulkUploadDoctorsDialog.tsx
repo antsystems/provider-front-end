@@ -168,11 +168,11 @@ export default function BulkUploadDoctorsDialog({
     // Create CSV content with headers and example rows according to the specified template
     // Note: Qualification is required by the backend API
     const csvContent = `doctor_name,specialty_name,contact_number,email,department_name,qualification
-Dr. John Smith,Cardiology,9876543210,john.smith@hospital.com,Cardiology,MBBS MD Cardiology
-Dr. Sarah Johnson,Neurology,9876543211,sarah.j@hospital.com,Neurology,MBBS DM Neurology
-Dr. Michael Brown,Orthopedics,9876543212,michael.b@hospital.com,Orthopedics,MBBS MS Orthopedics
-Dr. Emily Davis,Pediatrics,9876543213,emily.d@hospital.com,Pediatrics,MBBS DCH Pediatrics
-Dr. Robert Wilson,Internal Medicine,9876543214,robert.w@hospital.com,Internal Medicine,MBBS MD Medicine`
+"Dr. John Smith","Cardiology","9876543210","john.smith@hospital.com","Cardiology","MBBS MD Cardiology"
+"Dr. Sarah Johnson","Neurology","9876543211","sarah.j@hospital.com","Neurology","MBBS DM Neurology"
+"Dr. Michael Brown","Orthopedics","9876543212","michael.b@hospital.com","Orthopedics","MBBS MS Orthopedics"
+"Dr. Emily Davis","Pediatrics","9876543213","emily.d@hospital.com","Pediatrics","MBBS DCH Pediatrics"
+"Dr. Robert Wilson","Internal Medicine","9876543214","robert.w@hospital.com","Internal Medicine","MBBS MD Medicine"`
 
     // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -226,9 +226,9 @@ Dr. Robert Wilson,Internal Medicine,9876543214,robert.w@hospital.com,Internal Me
                   <code className="block bg-muted p-2 rounded mt-1 text-xs">
                     doctor_name,specialty_name,contact_number,email,department_name,qualification
                     <br />
-                    Dr. John Smith,Cardiology,9876543210,john.smith@hospital.com,Cardiology,MBBS MD Cardiology
+                    "Dr. John Smith","Cardiology","9876543210","john.smith@hospital.com","Cardiology","MBBS MD Cardiology"
                     <br />
-                    Dr. Sarah Johnson,Neurology,9876543211,sarah.j@hospital.com,Neurology,MBBS DM Neurology
+                    "Dr. Sarah Johnson","Neurology","9876543211","sarah.j@hospital.com","Neurology","MBBS DM Neurology"
                   </code>
                 </div>
 

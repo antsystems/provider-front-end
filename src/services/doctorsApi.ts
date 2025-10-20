@@ -227,6 +227,41 @@ class DoctorsApiService {
     }
   }
 
+  /**
+   * Parse a CSV line properly handling quoted fields with commas
+   */
+  private parseCSVLine(line: string): string[] {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          // Escaped quote
+          current += '"';
+          i++; // Skip next quote
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // Field separator
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    // Add the last field
+    result.push(current.trim());
+    
+    return result;
+  }
+
   async bulkUploadDoctors(file: File): Promise<{
     successful: number;
     failed: number;
@@ -253,7 +288,8 @@ class DoctorsApiService {
 
       // Process each row
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        // Parse CSV line properly handling quoted fields
+        const values = this.parseCSVLine(lines[i]);
         
         if (values.length < 5) {
           results.failed++;
