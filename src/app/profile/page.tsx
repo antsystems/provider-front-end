@@ -240,9 +240,6 @@ function ProfilePageContent() {
             <CardTitle className="text-xl">
               {getUserName()}
             </CardTitle>
-            <CardDescription className="text-sm">
-              {getRoleBadge()}
-            </CardDescription>
             <Badge variant="secondary" className="w-fit mx-auto mt-2">
               {getRoleIcon()}
               {getRoleBadge()}
@@ -267,10 +264,6 @@ function ProfilePageContent() {
                 <div>{user.entity_assignments.hospitals[0].name}</div>
               </div>
             )}
-            <Separator />
-            <div className="text-xs text-gray-500">
-              User ID: {user.id}
-            </div>
             {user.status && (
               <div className="text-xs">
                 <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-xs">
@@ -368,14 +361,10 @@ function ProfilePageContent() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
                   <div className="p-2 bg-gray-50 rounded-md capitalize">{getRoleBadge()}</div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="uid">User ID</Label>
-                  <div className="p-2 bg-gray-50 rounded-md font-mono text-sm">{user.id}</div>
                 </div>
               </div>
 

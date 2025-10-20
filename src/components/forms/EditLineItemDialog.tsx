@@ -80,7 +80,7 @@ export default function EditLineItemDialog({
       if (formData.amount !== lineItem.amount) updateData.amount = formData.amount
       if (formData.description !== lineItem.description) updateData.description = formData.description
 
-      await tariffsApi.updateLineItem(tariffId, lineItem.id, updateData)
+      await tariffsApi.updateLineItem(tariffId, lineItem.line_item, updateData)
 
       toast.success('Line item updated successfully')
       onOpenChange(false)

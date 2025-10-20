@@ -15,9 +15,10 @@ import {
 } from '@/types/payerAffiliations';
 import authService from '@/services/auth';
 import { getCached, setCached, clearCache } from '@/services/cache';
+import { API_BASE_URL } from '@/config/api';
 
 class PayerAffiliationsApiService {
-  private baseUrl = 'https://provider-4.onrender.com/api';
+  private baseUrl = API_BASE_URL;
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();
@@ -230,6 +231,54 @@ class PayerAffiliationsApiService {
       return data;
     } catch (error) {
       console.error('Failed to fetch available payers:', error);
+      throw error;
+    }
+  }
+
+  async getActivePayerAffiliationsForMapping(useCache = true): Promise<AvailablePayersResponse> {
+    const cacheKey = 'active-payer-affiliations-mapping';
+
+    // Check cache first if enabled
+    if (useCache) {
+      const cached = getCached<AvailablePayersResponse>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
+    const url = `${this.baseUrl}/payer-affiliations?status=active`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const affiliationsData: PayerAffiliationsResponse = await response.json();
+
+      // Transform PayerAffiliationsResponse to AvailablePayersResponse
+      const transformedData: AvailablePayersResponse = {
+        affiliated_payers: affiliationsData.affiliations.map(aff => aff.payer_name),
+        available_payers: affiliationsData.affiliations.map(aff => ({
+          id: aff.payer_id,
+          auto_id: aff.id,
+          name: aff.payer_name,
+          type: aff.payer_type,
+          code: aff.payer_code,
+        })),
+      };
+
+      // Cache for 10 minutes (600000 ms)
+      setCached(cacheKey, transformedData, 1000 * 60 * 10);
+
+      return transformedData;
+    } catch (error) {
+      console.error('Failed to fetch active payer affiliations:', error);
       throw error;
     }
   }

@@ -29,14 +29,15 @@ import {
 } from '@/types/tariffs';
 import authService from '@/services/auth';
 import { getCached, setCached, clearCache } from '@/services/cache';
+import { API_BASE_URL } from '@/config/api';
 
 class TariffsApiService {
-  private baseUrl = 'https://provider-4.onrender.com/api';
+  private baseUrl = API_BASE_URL;
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();
     if (!token) {
-      throw new Error('No authentication token available');
+      throw new Error('Authentication required: Please log in again. Your session may have expired.');
     }
     return {
       'Authorization': `Bearer ${token}`,

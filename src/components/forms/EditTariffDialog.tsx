@@ -125,7 +125,7 @@ export default function EditTariffDialog({
       onConfirm: async () => {
         try {
           setDeletingPayer(payerId)
-          await tariffsApi.deletePayerMapping(tariff.id, payerId)
+          await tariffsApi.deletePayerMapping(tariff.tariff_id, payerId)
           toast.success('Payer mapping removed successfully')
 
           const response = await tariffsApi.getTariffById(tariff.tariff_id)
@@ -330,7 +330,7 @@ export default function EditTariffDialog({
                           try {
                             await tariffsApi.updateLineItem(
                               tariff.tariff_id,
-                              editingLineItem.id,
+                              editingLineItem.code,
                               updatedItem
                             )
                             toast.success('Line item updated successfully')

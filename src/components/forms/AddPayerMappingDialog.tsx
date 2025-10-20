@@ -17,7 +17,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -25,7 +24,7 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CreatePayerMappingRequest, AvailablePayer, BulkCreatePayerMappingsRequest, BulkPayerMappingItem } from '@/types/tariffs'
+import { CreatePayerMappingRequest, BulkCreatePayerMappingsRequest, BulkPayerMappingItem } from '@/types/tariffs'
 import { AvailablePayer as PayerAffiliationPayer } from '@/types/payerAffiliations'
 import { tariffsApi } from '@/services/tariffsApi'
 import { payerAffiliationsApi } from '@/services/payerAffiliationsApi'
@@ -60,6 +59,7 @@ export default function AddPayerMappingDialog({
   const [isLoadingPayers, setIsLoadingPayers] = useState(false)
   const [tpaRelationships, setTpaRelationships] = useState<Map<string, BulkPayerMappingItem>>(new Map())
   const [affiliatedPayerNames, setAffiliatedPayerNames] = useState<string[]>([])
+  const [hasShownAffiliationWarning, setHasShownAffiliationWarning] = useState(false)
 
   const form = useForm<PayerMappingFormValues>({
     resolver: zodResolver(payerMappingSchema),
@@ -87,18 +87,22 @@ export default function AddPayerMappingDialog({
       try {
         setIsLoadingPayers(true)
         // Fetch available payers and affiliated list
-        const response = await payerAffiliationsApi.getAvailablePayers()
+        const response = await payerAffiliationsApi.getActivePayerAffiliationsForMapping()
 
-        // Filter to only show affiliated payers
-        const affiliatedPayers = response.available_payers.filter(payer =>
-          response.affiliated_payers.includes(payer.name)
-        )
-
-        setAvailablePayers(affiliatedPayers)
+        // Show all available payers (not just affiliated ones)
+        setAvailablePayers(response.available_payers)
         setAffiliatedPayerNames(response.affiliated_payers)
+
+        // Show info message if no affiliations exist (only once)
+        if (response.affiliated_payers.length === 0 && !hasShownAffiliationWarning) {
+          setHasShownAffiliationWarning(true)
+          toast.info('No payer affiliations found. Consider setting up affiliations in the Payer Affiliations section.', {
+            duration: 5000,
+          })
+        }
       } catch (error) {
-        console.error('Error fetching affiliated payers:', error)
-        toast.error('Failed to load affiliated payers. Please ensure you have payer affiliations set up.')
+        console.error('Error fetching payers:', error)
+        toast.error('Failed to load payers.')
       } finally {
         setIsLoadingPayers(false)
       }
@@ -295,6 +299,7 @@ export default function AddPayerMappingDialog({
                     selectedIds={selectedPayerIds}
                     onToggle={togglePayer}
                     isLoading={isLoadingPayers}
+                    affiliatedNames={affiliatedPayerNames}
                   />
                 </ScrollArea>
               </TabsContent>
@@ -306,6 +311,7 @@ export default function AddPayerMappingDialog({
                     selectedIds={selectedPayerIds}
                     onToggle={togglePayer}
                     isLoading={isLoadingPayers}
+                    affiliatedNames={affiliatedPayerNames}
                   />
                 </ScrollArea>
               </TabsContent>
@@ -317,6 +323,7 @@ export default function AddPayerMappingDialog({
                     selectedIds={selectedPayerIds}
                     onToggle={togglePayer}
                     isLoading={isLoadingPayers}
+                    affiliatedNames={affiliatedPayerNames}
                   />
                 </ScrollArea>
               </TabsContent>
@@ -328,6 +335,7 @@ export default function AddPayerMappingDialog({
                     selectedIds={selectedPayerIds}
                     onToggle={togglePayer}
                     isLoading={isLoadingPayers}
+                    affiliatedNames={affiliatedPayerNames}
                   />
                 </ScrollArea>
               </TabsContent>
@@ -386,11 +394,13 @@ function PayerSelectionList({
   selectedIds,
   onToggle,
   isLoading,
+  affiliatedNames = [],
 }: {
   payers: PayerAffiliationPayer[]
   selectedIds: string[]
   onToggle: (id: string) => void
   isLoading: boolean
+  affiliatedNames?: string[]
 }) {
   if (isLoading) {
     return (
@@ -412,6 +422,7 @@ function PayerSelectionList({
     <div className="space-y-2">
       {payers.map((payer) => {
         const payerId = payer.auto_id || payer.id
+        const isAffiliated = affiliatedNames.includes(payer.name)
         return (
           <div
             key={payerId}
@@ -430,6 +441,11 @@ function PayerSelectionList({
                 <Badge variant="secondary" className="text-xs">
                   {payer.type}
                 </Badge>
+                {isAffiliated && (
+                  <Badge variant="default" className="text-xs bg-green-500">
+                    Affiliated
+                  </Badge>
+                )}
               </div>
               <div className="text-sm text-muted-foreground">
                 Code: {payer.code}

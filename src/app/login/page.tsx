@@ -16,8 +16,8 @@ function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false)
 
   const [formData, setFormData] = useState({
-    email: 'shivarajagnipatil@gmail.com', // Pre-filled test credentials
-    password: 'Medverve@123'
+    email: '',
+    password: ''
   })
 
   const handleInputChange = useCallback((field: string, value: string) => {

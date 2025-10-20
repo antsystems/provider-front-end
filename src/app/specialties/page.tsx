@@ -298,25 +298,6 @@ export default function SpecialtiesPage() {
           )}
         </div>
 
-        {/* Quick Select with Combobox */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ListFilter className="h-5 w-5" />
-              Quick Select
-            </CardTitle>
-            <CardDescription>Use the dropdown to quickly search and select multiple specialties</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SpecialtyMultiSelect
-              specialties={specialties}
-              selectedIds={selectedSpecialties}
-              onSelectionChange={setSelectedSpecialties}
-              disabled={loading}
-            />
-          </CardContent>
-        </Card>
-
         {/* Specialties Tabs */}
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2">

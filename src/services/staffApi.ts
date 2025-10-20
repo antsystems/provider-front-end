@@ -8,9 +8,10 @@ import {
   DepartmentsResponse
 } from '@/types/staff';
 import authService from '@/services/auth';
+import { API_BASE_URL } from '@/config/api';
 
 class StaffApiService {
-  private baseUrl = 'https://provider-4.onrender.com/api';
+  private baseUrl = API_BASE_URL;
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();

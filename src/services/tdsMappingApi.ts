@@ -15,9 +15,10 @@ import {
   GetAffiliatedPayersResponse
 } from '@/types/tdsMapping';
 import authService from './auth';
+import { API_BASE_URL } from '@/config/api';
 
 class TDSMappingApi {
-  private baseUrl = 'https://provider-4.onrender.com/api';
+  private baseUrl = API_BASE_URL;
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();

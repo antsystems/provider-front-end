@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { signInWithEmail } from './firebaseClient';
+import { API_BASE_URL, API_TIMEOUT } from '@/config/api';
 import type {
   LoginCredentials,
   PhoneLoginCredentials,
@@ -14,12 +15,12 @@ import type {
 
 class AuthService {
   private api: AxiosInstance;
-  private baseURL = 'https://provider-4.onrender.com/api';
+  private baseURL = API_BASE_URL;
 
   constructor() {
     this.api = axios.create({
       baseURL: this.baseURL,
-      timeout: 30000,
+      timeout: API_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
       },

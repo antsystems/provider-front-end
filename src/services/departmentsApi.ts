@@ -9,9 +9,10 @@ import {
   DeleteDepartmentResponse
 } from '@/types/departments';
 import authService from '@/services/auth';
+import { API_BASE_URL } from '@/config/api';
 
 class DepartmentsApiService {
-  private baseUrl = 'https://provider-4.onrender.com/api';
+  private baseUrl = API_BASE_URL;
 
   private getAuthHeaders() {
     const token = authService.getCurrentToken();
