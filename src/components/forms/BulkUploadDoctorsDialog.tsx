@@ -166,7 +166,7 @@ export default function BulkUploadDoctorsDialog({
 
   const handleDownloadTemplate = () => {
     // Create CSV content with headers and example rows according to the specified template
-    // Note: Using common specialty names that are typically available in most systems
+    // Note: Qualification is required by the backend API
     const csvContent = `doctor_name,specialty_name,contact_number,email,department_name,qualification
 Dr. John Smith,Cardiology,9876543210,john.smith@hospital.com,Cardiology,MBBS MD Cardiology
 Dr. Sarah Johnson,Neurology,9876543211,sarah.j@hospital.com,Neurology,MBBS DM Neurology
@@ -236,9 +236,9 @@ Dr. Robert Wilson,Internal Medicine,9876543214,robert.w@hospital.com,Internal Me
                   <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-950 rounded">
                     <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                      <strong>Required fields:</strong> doctor_name, specialty_name, contact_number, email, department_name
+                      <strong>Required fields:</strong> doctor_name, specialty_name, contact_number, email, department_name, qualification
                       <br />
-                      <strong>Optional:</strong> qualification
+                      <strong>Note:</strong> All fields are required by the backend API
                     </p>
                   </div>
                 </div>

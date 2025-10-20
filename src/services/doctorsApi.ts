@@ -272,7 +272,7 @@ class DoctorsApiService {
             contact_number: values[2] || '',
             email: values[3] || '',
             department_name: values[4] || '',
-            qualification: values[5] || undefined,
+            qualification: values[5] || 'Not specified', // Provide default value since backend requires it
           };
 
           // Validate required fields
@@ -280,9 +280,14 @@ class DoctorsApiService {
             results.failed++;
             results.errors.push({
               row: i + 1,
-              error: 'Missing required fields'
+              error: 'Missing required fields: doctor_name, specialty_name, contact_number, email, department_name'
             });
             continue;
+          }
+
+          // Ensure qualification is provided (backend requirement)
+          if (!doctorData.qualification || doctorData.qualification.trim() === '') {
+            doctorData.qualification = 'Not specified';
           }
 
           // Create doctor using individual API call
