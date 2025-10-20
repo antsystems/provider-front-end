@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Enable standalone output for Docker/Cloud Run deployment
   output: "standalone",
+  // Allow cross-origin requests from specific origins during development
+  allowedDevOrigins: ["192.168.29.206"],
   eslint: {
     ignoreDuringBuilds: true,
   },

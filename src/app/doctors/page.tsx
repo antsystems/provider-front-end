@@ -6,7 +6,7 @@ import { DoctorsTable } from '@/components/tables/DoctorsTable'
 import { doctorsApi } from '@/services/doctorsApi'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, RefreshCw, Filter, Download, Users } from 'lucide-react'
+import { AlertCircle, RefreshCw, Filter, Download, Users, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
 import { useDebounce } from '@/hooks/useDebounce'
+import BulkUploadDoctorsDialog from '@/components/forms/BulkUploadDoctorsDialog'
 
 export default function DoctorsPage() {
   const [allDoctors, setAllDoctors] = useState<Doctor[]>([]) // All doctors from API
@@ -35,6 +36,7 @@ export default function DoctorsPage() {
   const [specialties, setSpecialties] = useState<string[]>([])
   const [departments, setDepartments] = useState<string[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(false)
+  const [bulkUploadDialogOpen, setBulkUploadDialogOpen] = useState(false)
 
   const fetchAllDoctors = async () => {
     try {
@@ -199,6 +201,12 @@ export default function DoctorsPage() {
     fetchAllDoctors()
   }
 
+  const handleBulkUploadSuccess = () => {
+    // Refresh data after bulk upload
+    fetchAllDoctors()
+    fetchFilterOptions() // Refresh filter options as well
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -207,6 +215,13 @@ export default function DoctorsPage() {
           <p className="text-gray-600">Manage and view all doctors in the system</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            onClick={() => setBulkUploadDialogOpen(true)} 
+            className="gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            Bulk Upload
+          </Button>
           <Button onClick={handleExportDoctors} variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Export CSV
@@ -365,6 +380,13 @@ export default function DoctorsPage() {
         onUpdate={handleDoctorUpdate}
         onDelete={handleDoctorDelete}
         onRefresh={handleDoctorCreate}
+      />
+
+      {/* Bulk Upload Dialog */}
+      <BulkUploadDoctorsDialog
+        open={bulkUploadDialogOpen}
+        onOpenChange={setBulkUploadDialogOpen}
+        onSuccess={handleBulkUploadSuccess}
       />
     </div>
   )

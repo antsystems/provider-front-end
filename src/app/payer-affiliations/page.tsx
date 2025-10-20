@@ -16,9 +16,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building, FileText, TrendingUp, Download, Filter, RotateCcw } from 'lucide-react'
+import { Building, FileText, TrendingUp, Download, Filter, RotateCcw, Bug } from 'lucide-react'
 import { toast } from 'sonner'
 import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
+import PayerDebugDialog from '@/components/debug/PayerDebugDialog'
 
 export default function PayerAffiliationsPage() {
   const { user } = useAuth()
@@ -26,6 +27,7 @@ export default function PayerAffiliationsPage() {
   const [loading, setLoading] = useState(true)
   // No longer needed: const [statusFilter, setStatusFilter] = useState<string>('all')
   const [payerTypeFilter, setPayerTypeFilter] = useState<string>('all')
+  const [debugDialogOpen, setDebugDialogOpen] = useState(false)
 
   const fetchAffiliations = async () => {
     try {
@@ -116,6 +118,14 @@ export default function PayerAffiliationsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDebugDialogOpen(true)}
+              className="gap-2"
+            >
+              <Bug className="h-4 w-4" />
+              Debug Payer
+            </Button>
             <Button
               variant="outline"
               onClick={handleExport}
@@ -257,6 +267,12 @@ export default function PayerAffiliationsPage() {
           affiliations={filteredAffiliations}
           loading={loading}
           onRefresh={fetchAffiliations}
+        />
+
+        {/* Debug Dialog */}
+        <PayerDebugDialog
+          open={debugDialogOpen}
+          onOpenChange={setDebugDialogOpen}
         />
         
       </div>

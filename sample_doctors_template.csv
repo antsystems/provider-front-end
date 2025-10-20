@@ -1,0 +1,9 @@
+doctor_name,specialty_name,contact_number,email,department_name,qualification
+Dr. John Smith,Cardiology,9876543210,john.smith@hospital.com,Cardiology,MBBS MD Cardiology
+Dr. Sarah Johnson,Neurology,9876543211,sarah.j@hospital.com,Neurology,MBBS DM Neurology
+Dr. Michael Brown,Orthopedics,9876543212,michael.b@hospital.com,Orthopedics,MBBS MS Orthopedics
+Dr. Emily Davis,Pediatrics,9876543213,emily.d@hospital.com,Pediatrics,MBBS DCH Pediatrics
+Dr. Robert Wilson,General Medicine,9876543214,robert.w@hospital.com,General Medicine,MBBS MD Medicine
+Dr. Lisa Anderson,Dermatology,9876543215,lisa.a@hospital.com,Dermatology,MBBS MD Dermatology
+Dr. David Thompson,Gastroenterology,9876543216,david.t@hospital.com,Gastroenterology,MBBS MD Gastroenterology
+Dr. Maria Garcia,Obstetrics and Gynecology,9876543217,maria.g@hospital.com,Obstetrics and Gynecology,MBBS MS OBG
