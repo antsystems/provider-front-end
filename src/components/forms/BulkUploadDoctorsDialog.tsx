@@ -190,6 +190,38 @@ export default function BulkUploadDoctorsDialog({
     toast.success('Template downloaded! Fill in your doctor data.')
   }
 
+  const downloadFailedDoctorsList = () => {
+    if (!uploadResult?.errors || uploadResult.errors.length === 0) {
+      toast.error('No failed doctors to download')
+      return
+    }
+
+    // Create CSV content with failed doctors and their errors
+    const csvContent = `row_number,doctor_name,specialty_name,contact_number,email,department_name,qualification,error_message\n${uploadResult.errors.map(error => {
+      const rowIndex = error.row - 1 // Convert to 0-based index
+      if (previewData && previewData[rowIndex]) {
+        const doctor = previewData[rowIndex]
+        return `${error.row},"${doctor.doctor_name}","${doctor.specialty_name}","${doctor.contact_number}","${doctor.email}","${doctor.department_name}","${doctor.qualification}","${error.error}"`
+      }
+      return `${error.row},,,,,,"${error.error}"`
+    }).join('\n')}`
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', `failed_doctors_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success(`Downloaded list of ${uploadResult.errors.length} failed doctors`)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto scrollbar-hide">
@@ -410,7 +442,18 @@ export default function BulkUploadDoctorsDialog({
                     {/* Error Details */}
                     {uploadResult.errors && uploadResult.errors.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-sm font-medium mb-2">Errors:</p>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-medium">Errors:</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadFailedDoctorsList()}
+                            className="gap-1"
+                          >
+                            <Download className="h-3 w-3" />
+                            Download Failed List
+                          </Button>
+                        </div>
                         <div className="max-h-40 overflow-y-auto scrollbar-hide space-y-1">
                           {uploadResult.errors.map((error, index) => (
                             <div
