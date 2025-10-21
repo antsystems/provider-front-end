@@ -301,14 +301,14 @@ class DoctorsApiService {
         }
 
         try {
-          // Map CSV columns to doctor fields
+          // Map CSV columns to doctor fields (backend format: doctor_name,specialty_name,email,department_name,qualification,contact_number)
           const doctorData: CreateDoctorRequest = {
             doctor_name: values[0] || '',
             specialty_name: values[1] || '',
-            contact_number: values[2] || '',
-            email: values[3] || '',
-            department_name: values[4] || '',
-            qualification: values[5] || 'Not specified', // Provide default value since backend requires it
+            email: values[2] || '',
+            department_name: values[3] || '',
+            qualification: values[4] || 'Not specified',
+            contact_number: values[5] || '',
           };
 
           // Validate required fields

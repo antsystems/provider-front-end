@@ -165,14 +165,14 @@ export default function BulkUploadDoctorsDialog({
   }
 
   const handleDownloadTemplate = () => {
-    // Create CSV content with headers and example rows according to the specified template
-    // Note: Qualification is required by the backend API
-    const csvContent = `doctor_name,specialty_name,contact_number,email,department_name,qualification
-"Dr. John Smith","Cardiology","9876543210","john.smith@hospital.com","Cardiology","MBBS MD Cardiology"
-"Dr. Sarah Johnson","Neurology","9876543211","sarah.j@hospital.com","Neurology","MBBS DM Neurology"
-"Dr. Michael Brown","Orthopedics","9876543212","michael.b@hospital.com","Orthopedics","MBBS MS Orthopedics"
-"Dr. Emily Davis","Pediatrics","9876543213","emily.d@hospital.com","Pediatrics","MBBS DCH Pediatrics"
-"Dr. Robert Wilson","Internal Medicine","9876543214","robert.w@hospital.com","Internal Medicine","MBBS MD Medicine"`
+    // Create CSV content with headers and example rows according to the backend expected format
+    // Backend format: doctor_name,specialty_name,email,department_name,qualification,contact_number
+    const csvContent = `doctor_name,specialty_name,email,department_name,qualification,contact_number
+"Dr. John Smith","Cardiology","john.smith@hospital.com","Cardiology","MBBS MD Cardiology","9876543210"
+"Dr. Sarah Johnson","Neurology","sarah.j@hospital.com","Neurology","MBBS DM Neurology","9876543211"
+"Dr. Michael Brown","Orthopedics","michael.b@hospital.com","Orthopedics","MBBS MS Orthopedics","9876543212"
+"Dr. Emily Davis","Pediatrics","emily.d@hospital.com","Pediatrics","MBBS DCH Pediatrics","9876543213"
+"Dr. Robert Wilson","Internal Medicine","robert.w@hospital.com","Internal Medicine","MBBS MD Medicine","9876543214"`
 
     // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -196,12 +196,12 @@ export default function BulkUploadDoctorsDialog({
       return
     }
 
-    // Create CSV content with failed doctors and their errors
-    const csvContent = `row_number,doctor_name,specialty_name,contact_number,email,department_name,qualification,error_message\n${uploadResult.errors.map(error => {
+    // Create CSV content with failed doctors and their errors (backend format)
+    const csvContent = `row_number,doctor_name,specialty_name,email,department_name,qualification,contact_number,error_message\n${uploadResult.errors.map(error => {
       const rowIndex = error.row - 1 // Convert to 0-based index
       if (previewData && previewData[rowIndex]) {
         const doctor = previewData[rowIndex]
-        return `${error.row},"${doctor.doctor_name}","${doctor.specialty_name}","${doctor.contact_number}","${doctor.email}","${doctor.department_name}","${doctor.qualification}","${error.error}"`
+        return `${error.row},"${doctor.doctor_name}","${doctor.specialty_name}","${doctor.email}","${doctor.department_name}","${doctor.qualification}","${doctor.contact_number}","${error.error}"`
       }
       return `${error.row},,,,,,"${error.error}"`
     }).join('\n')}`
@@ -256,11 +256,11 @@ export default function BulkUploadDoctorsDialog({
                 <div>
                   <p className="font-medium text-primary">Required CSV Headers:</p>
                   <code className="block bg-muted p-2 rounded mt-1 text-xs">
-                    doctor_name,specialty_name,contact_number,email,department_name,qualification
+                    doctor_name,specialty_name,email,department_name,qualification,contact_number
                     <br />
-                    "Dr. John Smith","Cardiology","9876543210","john.smith@hospital.com","Cardiology","MBBS MD Cardiology"
+                    "Dr. John Smith","Cardiology","john.smith@hospital.com","Cardiology","MBBS MD Cardiology","9876543210"
                     <br />
-                    "Dr. Sarah Johnson","Neurology","9876543211","sarah.j@hospital.com","Neurology","MBBS DM Neurology"
+                    "Dr. Sarah Johnson","Neurology","sarah.j@hospital.com","Neurology","MBBS DM Neurology","9876543211"
                   </code>
                 </div>
 
@@ -268,7 +268,7 @@ export default function BulkUploadDoctorsDialog({
                   <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-950 rounded">
                     <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                      <strong>Required fields:</strong> doctor_name, specialty_name, contact_number, email, department_name, qualification
+                      <strong>Required fields:</strong> doctor_name, specialty_name, email, department_name, qualification, contact_number
                       <br />
                       <strong>Note:</strong> All fields are required by the backend API
                     </p>
