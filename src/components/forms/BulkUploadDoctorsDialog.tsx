@@ -169,9 +169,9 @@ export default function BulkUploadDoctorsDialog({
     // Backend format: doctor_name,specialty_name,email,department_name,qualification,contact_number
     const csvContent = `doctor_name,specialty_name,email,department_name,qualification,contact_number
 "Dr. John Smith","Cardiology","john.smith@hospital.com","Cardiology","MBBS MD Cardiology","9876543210"
-"Dr. Sarah Johnson","Neurology","sarah.j@hospital.com","Neurology","MBBS DM Neurology","9876543211"
+"Dr. Sarah Johnson","Neurology","sarah.j@hospital.com","Neurology","MBBS DM Neurology",""
 "Dr. Michael Brown","Orthopedics","michael.b@hospital.com","Orthopedics","MBBS MS Orthopedics","9876543212"
-"Dr. Emily Davis","Pediatrics","emily.d@hospital.com","Pediatrics","MBBS DCH Pediatrics","9876543213"
+"Dr. Emily Davis","Pediatrics","emily.d@hospital.com","Pediatrics","MBBS DCH Pediatrics",""
 "Dr. Robert Wilson","Internal Medicine","robert.w@hospital.com","Internal Medicine","MBBS MD Medicine","9876543214"`
 
     // Create blob and download
@@ -260,7 +260,7 @@ export default function BulkUploadDoctorsDialog({
                     <br />
                     "Dr. John Smith","Cardiology","john.smith@hospital.com","Cardiology","MBBS MD Cardiology","9876543210"
                     <br />
-                    "Dr. Sarah Johnson","Neurology","sarah.j@hospital.com","Neurology","MBBS DM Neurology","9876543211"
+                    "Dr. Sarah Johnson","Neurology","sarah.j@hospital.com","Neurology","MBBS DM Neurology",""
                   </code>
                 </div>
 
@@ -268,9 +268,11 @@ export default function BulkUploadDoctorsDialog({
                   <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-950 rounded">
                     <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                      <strong>Required fields:</strong> doctor_name, specialty_name, email, department_name, qualification, contact_number
+                      <strong>Required fields:</strong> doctor_name, specialty_name, email, department_name, qualification
                       <br />
-                      <strong>Note:</strong> All fields are required by the backend API
+                      <strong>Optional fields:</strong> contact_number
+                      <br />
+                      <strong>Note:</strong> contact_number can be left empty
                     </p>
                   </div>
                 </div>

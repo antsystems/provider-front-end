@@ -311,12 +311,12 @@ class DoctorsApiService {
             contact_number: values[5] || '',
           };
 
-          // Validate required fields
-          if (!doctorData.doctor_name || !doctorData.specialty_name || !doctorData.contact_number || !doctorData.email || !doctorData.department_name) {
+          // Validate required fields (contact_number is optional)
+          if (!doctorData.doctor_name || !doctorData.specialty_name || !doctorData.email || !doctorData.department_name) {
             results.failed++;
             results.errors.push({
               row: i + 1,
-              error: 'Missing required fields: doctor_name, specialty_name, contact_number, email, department_name'
+              error: 'Missing required fields: doctor_name, specialty_name, email, department_name'
             });
             continue;
           }
