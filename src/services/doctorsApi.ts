@@ -326,9 +326,9 @@ class DoctorsApiService {
             doctorData.qualification = 'Not specified';
           }
 
-          // Ensure contact_number is provided (backend requirement)
+          // Handle optional contact_number - remove if empty to avoid backend validation error
           if (!doctorData.contact_number || doctorData.contact_number.trim() === '') {
-            doctorData.contact_number = 'Not provided';
+            delete doctorData.contact_number;
           }
 
           // Create doctor using individual API call
