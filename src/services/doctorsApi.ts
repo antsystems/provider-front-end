@@ -308,6 +308,7 @@ class DoctorsApiService {
             email: values[2] || undefined,
             department_name: values[3] || '',
             qualification: values[4] || 'Not specified',
+            contact_number: values[5] || 'Not provided', // Always provide a value for backend requirement
           };
 
           // Validate required fields (contact_number and email are optional)
@@ -329,9 +330,6 @@ class DoctorsApiService {
           if (doctorData.email === '') {
             doctorData.email = undefined;
           }
-
-          // Skip contact_number entirely - backend doesn't accept it
-          // values[5] contains contact_number but we don't send it to backend
 
           // Create doctor using individual API call
           const response = await this.createDoctor(doctorData);

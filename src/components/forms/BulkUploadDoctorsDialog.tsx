@@ -270,9 +270,9 @@ export default function BulkUploadDoctorsDialog({
                     <p className="text-xs text-blue-700 dark:text-blue-300">
                       <strong>Required fields:</strong> doctor_name, specialty_name, department_name, qualification
                       <br />
-                      <strong>Optional fields:</strong> email (will be omitted if empty)
+                      <strong>Optional fields:</strong> email (will be omitted if empty), contact_number (will be set to "Not provided" if empty)
                       <br />
-                      <strong>Note:</strong> contact_number column is ignored - not sent to backend
+                      <strong>Note:</strong> contact_number can be left empty in CSV
                     </p>
                   </div>
                 </div>
