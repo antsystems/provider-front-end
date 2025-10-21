@@ -81,6 +81,16 @@ export default function SpecialtiesPage() {
         return
       }
       
+      // Handle case where no affiliation exists yet (this is normal for new hospitals)
+      if (error instanceof Error && (
+        error.message.includes('No specialty affiliation found') ||
+        error.message.includes('Please create affiliation first')
+      )) {
+        console.log('No existing specialty affiliation found. This is normal for new hospitals.')
+        // Continue without showing error to user as this is expected for new hospitals
+        return
+      }
+      
       // Don't show error toast as it's normal to not have an affiliation yet
     }
   }

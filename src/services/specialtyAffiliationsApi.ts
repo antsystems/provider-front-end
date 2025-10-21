@@ -81,6 +81,12 @@ class SpecialtyAffiliationsApiService {
           throw new Error('Backend error: Invalid data comparison. Please contact support.');
         }
         
+        // Handle case where no affiliation exists (this is normal for new hospitals)
+        if (errorMessage.includes('No specialty affiliation found') || 
+            errorMessage.includes('Please create affiliation first')) {
+          throw new Error('No specialty affiliation found. Please create affiliation first.');
+        }
+        
         throw new Error(errorMessage);
       }
 
