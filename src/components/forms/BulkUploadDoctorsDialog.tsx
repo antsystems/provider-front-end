@@ -268,11 +268,11 @@ export default function BulkUploadDoctorsDialog({
                   <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-950 rounded">
                     <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                      <strong>Required fields:</strong> doctor_name, specialty_name, email, department_name, qualification
+                      <strong>Required fields:</strong> doctor_name, specialty_name, department_name, qualification
                       <br />
-                      <strong>Optional fields:</strong> contact_number (will be omitted if empty)
+                      <strong>Optional fields:</strong> email, contact_number (will be omitted if empty)
                       <br />
-                      <strong>Note:</strong> contact_number can be left empty in CSV
+                      <strong>Note:</strong> email and contact_number can be left empty in CSV
                     </p>
                   </div>
                 </div>

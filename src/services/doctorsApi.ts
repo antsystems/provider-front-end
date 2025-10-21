@@ -305,18 +305,18 @@ class DoctorsApiService {
           const doctorData: CreateDoctorRequest = {
             doctor_name: values[0] || '',
             specialty_name: values[1] || '',
-            email: values[2] || '',
+            email: values[2] || undefined,
             department_name: values[3] || '',
             qualification: values[4] || 'Not specified',
-            contact_number: values[5] || '',
+            contact_number: values[5] || undefined,
           };
 
-          // Validate required fields (contact_number is optional)
-          if (!doctorData.doctor_name || !doctorData.specialty_name || !doctorData.email || !doctorData.department_name) {
+          // Validate required fields (contact_number and email are optional)
+          if (!doctorData.doctor_name || !doctorData.specialty_name || !doctorData.department_name) {
             results.failed++;
             results.errors.push({
               row: i + 1,
-              error: 'Missing required fields: doctor_name, specialty_name, email, department_name'
+              error: 'Missing required fields: doctor_name, specialty_name, department_name'
             });
             continue;
           }
@@ -326,9 +326,12 @@ class DoctorsApiService {
             doctorData.qualification = 'Not specified';
           }
 
-          // Handle optional contact_number - remove if empty to avoid backend validation error
-          if (!doctorData.contact_number || doctorData.contact_number.trim() === '') {
-            delete doctorData.contact_number;
+          // Convert empty strings to undefined for optional fields (same as AddDoctorDialog)
+          if (doctorData.email === '') {
+            doctorData.email = undefined;
+          }
+          if (doctorData.contact_number === '') {
+            doctorData.contact_number = undefined;
           }
 
           // Create doctor using individual API call
