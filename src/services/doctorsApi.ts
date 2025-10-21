@@ -326,6 +326,11 @@ class DoctorsApiService {
             doctorData.qualification = 'Not specified';
           }
 
+          // Ensure contact_number is provided (backend requirement)
+          if (!doctorData.contact_number || doctorData.contact_number.trim() === '') {
+            doctorData.contact_number = 'Not provided';
+          }
+
           // Create doctor using individual API call
           const response = await this.createDoctor(doctorData);
           results.successful++;
