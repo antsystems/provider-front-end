@@ -286,6 +286,19 @@ class DoctorsApiService {
         errors: [] as Array<{ row: number; error: string }>
       };
 
+      // Fetch existing doctors to check for duplicates
+      let existingDoctors: any[] = [];
+      try {
+        const existingResponse = await this.getDoctors();
+        existingDoctors = existingResponse.doctors || [];
+      } catch (error) {
+        console.warn('Could not fetch existing doctors for duplicate check:', error);
+      }
+
+      // Create a set of existing doctor emails and names for quick lookup
+      const existingEmails = new Set(existingDoctors.map(doc => doc.email?.toLowerCase()).filter(Boolean));
+      const existingNames = new Set(existingDoctors.map(doc => doc.doctor_name?.toLowerCase()).filter(Boolean));
+
       // Process each row
       for (let i = 1; i < lines.length; i++) {
         // Parse CSV line properly handling quoted fields
@@ -331,10 +344,37 @@ class DoctorsApiService {
             doctorData.email = undefined;
           }
 
+          // Check for duplicates before creating
+          const isDuplicateEmail = doctorData.email && existingEmails.has(doctorData.email.toLowerCase());
+          const isDuplicateName = existingNames.has(doctorData.doctor_name.toLowerCase());
+          
+          if (isDuplicateEmail || isDuplicateName) {
+            results.failed++;
+            let duplicateReason = '';
+            if (isDuplicateEmail && isDuplicateName) {
+              duplicateReason = 'Doctor with same email and name already exists';
+            } else if (isDuplicateEmail) {
+              duplicateReason = 'Doctor with same email already exists';
+            } else {
+              duplicateReason = 'Doctor with same name already exists';
+            }
+            results.errors.push({
+              row: i + 1,
+              error: duplicateReason
+            });
+            continue;
+          }
+
           // Create doctor using individual API call
           const response = await this.createDoctor(doctorData);
           results.successful++;
           results.created_doctors.push(response.doctor.doctor_id);
+
+          // Add to existing sets to prevent duplicates within the same upload
+          if (doctorData.email) {
+            existingEmails.add(doctorData.email.toLowerCase());
+          }
+          existingNames.add(doctorData.doctor_name.toLowerCase());
         } catch (error) {
           results.failed++;
           results.errors.push({
