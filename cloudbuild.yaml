@@ -43,12 +43,12 @@ steps:
       - '10'  # Adjust based on expected traffic
       - '--port'
       - '3000'
-      # Add environment variables here
-      # - '--set-env-vars'
-      # - 'NODE_ENV=production,NEXT_PUBLIC_API_URL=https://api.example.com'
-      # Or use secrets from Secret Manager
+      # Environment variables
+      - '--set-env-vars'
+      - 'NODE_ENV=production,NEXT_PUBLIC_API_URL=https://provider-476791140012.asia-south1.run.app/api'
+      # Optional: Use secrets from Secret Manager for sensitive data
       # - '--set-secrets'
-      # - 'FIREBASE_API_KEY=firebase-api-key:latest'
+      # - 'NEXT_PUBLIC_FIREBASE_API_KEY=firebase-api-key:latest'
 
 images:
   - 'gcr.io/$PROJECT_ID/provider-app:$COMMIT_SHA'
