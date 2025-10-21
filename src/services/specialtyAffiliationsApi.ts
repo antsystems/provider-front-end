@@ -74,7 +74,20 @@ class SpecialtyAffiliationsApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        
+        // Handle specific backend errors
+        if (errorMessage.includes("'<' not supported between instances of 'NoneType' and 'str'")) {
+          throw new Error('Backend error: Invalid data comparison. Please contact support.');
+        }
+        
+        // Handle case where no affiliation exists (this is normal for new hospitals)
+        if (errorMessage.includes('No specialty affiliation found') || 
+            errorMessage.includes('Please create affiliation first')) {
+          throw new Error('No specialty affiliation found. Please create affiliation first.');
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data: GetSpecialtyAffiliationResponse = await response.json();

@@ -73,6 +73,24 @@ export default function SpecialtiesPage() {
       }
     } catch (error) {
       console.error('Error fetching current affiliation:', error)
+      
+      // Handle specific backend errors
+      if (error instanceof Error && error.message.includes('Backend error: Invalid data comparison')) {
+        console.warn('Backend specialty affiliation service has a data comparison issue. Continuing without current affiliations.')
+        // Continue without showing error to user as this is a backend issue
+        return
+      }
+      
+      // Handle case where no affiliation exists yet (this is normal for new hospitals)
+      if (error instanceof Error && (
+        error.message.includes('No specialty affiliation found') ||
+        error.message.includes('Please create affiliation first')
+      )) {
+        console.log('No existing specialty affiliation found. This is normal for new hospitals.')
+        // Continue without showing error to user as this is expected for new hospitals
+        return
+      }
+      
       // Don't show error toast as it's normal to not have an affiliation yet
     }
   }
@@ -154,7 +172,7 @@ export default function SpecialtiesPage() {
         const response = await specialtyAffiliationsApi.createOrUpdateSpecialtyAffiliation({
           specialty_ids: Array.from(selectedSpecialties)
         })
-        successMessage = `Successfully affiliated with ${response.affiliation.specialty_count} specialties`
+        successMessage = `Successfully affiliated with ${response.affiliation?.specialty_count || selectedSpecialties.size} specialties`
       } else {
         // Otherwise, add new ones and remove old ones
         const promises = []
