@@ -265,10 +265,10 @@ export default function AddDoctorDialog({
                             <CommandList>
                               <CommandEmpty>No specialty found.</CommandEmpty>
                               <CommandGroup>
-                                {specialties.map((specialty) => (
+                                {specialties.map((specialty, index) => (
                                   <CommandItem
                                     value={specialty}
-                                    key={specialty}
+                                    key={`${specialty}-${index}`}
                                     onSelect={() => {
                                       form.setValue("specialty_name", specialty)
                                       setOpenSpecialty(false)

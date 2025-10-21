@@ -423,9 +423,9 @@ export default function SpecialtiesPage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedSpecialtiesWithDetails.map((specialty) => (
+                    {selectedSpecialtiesWithDetails.map((specialty, index) => (
                       <div
-                        key={specialty.specialty_id}
+                        key={`${specialty.specialty_id}-${index}`}
                         className="p-4 rounded-lg border-2 border-primary bg-primary/5 shadow-sm transition-all relative group"
                       >
                         <div className="flex items-start gap-3">
