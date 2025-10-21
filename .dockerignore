@@ -57,6 +57,12 @@ README.md
 CHANGELOG.md
 LICENSE
 *.md
+DEPLOYMENT.md
+IMPROVED_ERROR_HANDLING.md
+
+# Deployment scripts (not needed in container)
+deploy.sh
+cloudbuild.yaml
 
 # TypeScript cache
 *.tsbuildinfo
