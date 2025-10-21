@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -23,9 +23,13 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CreateTariffRequest } from '@/types/tariffs'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { CreateTariffRequest, BulkCreatePayerMappingsRequest } from '@/types/tariffs'
+import { AvailablePayer } from '@/types/payerAffiliations'
 import { tariffsApi } from '@/services/tariffsApi'
-import { FileText, Calendar, Plus, Trash2, IndianRupee, Info } from 'lucide-react'
+import { payerAffiliationsApi } from '@/services/payerAffiliationsApi'
+import { FileText, Calendar, Plus, Trash2, IndianRupee, Info, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 const lineItemSchema = z.object({
@@ -42,6 +46,7 @@ const createTariffSchema = z.object({
   tariff_end_date: z.string().optional(),
   document_name: z.string().optional(),
   line_items: z.array(lineItemSchema).min(1, 'At least one line item is required'),
+  payer_ids: z.array(z.string()).optional(),
 })
 
 type CreateTariffFormValues = z.infer<typeof createTariffSchema>
@@ -58,6 +63,8 @@ export default function AddTariffDialog({
   onSuccess,
 }: AddTariffDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [availablePayers, setAvailablePayers] = useState<AvailablePayer[]>([])
+  const [isLoadingPayers, setIsLoadingPayers] = useState(false)
 
   const form = useForm<CreateTariffFormValues>({
     resolver: zodResolver(createTariffSchema),
@@ -75,8 +82,28 @@ export default function AddTariffDialog({
           description: '',
         },
       ],
+      payer_ids: [],
     },
   })
+
+  // Fetch available payers when dialog opens
+  useEffect(() => {
+    const fetchPayers = async () => {
+      if (!open) return
+
+      try {
+        setIsLoadingPayers(true)
+        const response = await payerAffiliationsApi.getActivePayerAffiliationsForMapping()
+        setAvailablePayers(response.available_payers)
+      } catch (error) {
+        console.error('Error fetching payers:', error)
+      } finally {
+        setIsLoadingPayers(false)
+      }
+    }
+
+    fetchPayers()
+  }, [open])
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -86,6 +113,7 @@ export default function AddTariffDialog({
   const onSubmit = async (values: CreateTariffFormValues) => {
     setIsLoading(true)
     try {
+      // Step 1: Create the tariff
       const createData: CreateTariffRequest = {
         tariff_name: values.tariff_name,
         tariff_id: values.tariff_id,
@@ -100,9 +128,40 @@ export default function AddTariffDialog({
         })),
       }
 
-      await tariffsApi.createTariff(createData)
+      const tariffResponse = await tariffsApi.createTariff(createData)
+      const createdTariffId = tariffResponse.tariff.tariff_id
 
-      toast.success('Tariff created successfully')
+      // Step 2: Add payer mappings if any were selected
+      if (values.payer_ids && values.payer_ids.length > 0) {
+        const selectedPayers = availablePayers.filter(p =>
+          values.payer_ids!.includes(p.id)
+        )
+
+        const bulkData: BulkCreatePayerMappingsRequest = {
+          payers: selectedPayers.map(p => ({
+            payer_id: p.id, // Use actual payer_id (e.g., MV050925CORP002), not UUID
+            payer_name: p.name,
+            payer_type: p.type,
+          })),
+        }
+
+        try {
+          const payerResponse = await tariffsApi.bulkAddPayerMappings(createdTariffId, bulkData)
+          toast.success(`Tariff created with ${payerResponse.successful} payer(s) mapped`, {
+            description: `Tariff "${values.tariff_name}" has been created successfully`,
+          })
+        } catch (payerError) {
+          // Tariff was created but payer mapping failed
+          toast.warning('Tariff created, but payer mapping failed', {
+            description: 'You can add payers manually in the edit dialog',
+          })
+        }
+      } else {
+        toast.success('Tariff created successfully', {
+          description: `You can add payer mappings later in the edit dialog`,
+        })
+      }
+
       form.reset()
       onOpenChange(false)
       onSuccess?.()
@@ -349,13 +408,89 @@ export default function AddTariffDialog({
               </CardContent>
             </Card>
 
-            {/* Info about payer mappings */}
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Next step:</strong> After creating this tariff, you can map payers (including TPAs with insurance company relationships) in the edit dialog.
-              </AlertDescription>
-            </Alert>
+            {/* Payer Mappings (Optional) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Payer Mappings (Optional)
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Select payers to map to this tariff. You can also add more payers later.
+                </p>
+              </CardHeader>
+              <CardContent>
+                {isLoadingPayers ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : availablePayers.length === 0 ? (
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      No payers available. Set up payer affiliations first.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="payer_ids"
+                    render={() => (
+                      <FormItem>
+                        <ScrollArea className="h-[200px] rounded-md border p-4">
+                          <div className="space-y-2">
+                            {availablePayers.map((payer) => (
+                              <FormField
+                                key={payer.id}
+                                control={form.control}
+                                name="payer_ids"
+                                render={({ field }) => {
+                                  return (
+                                    <FormItem
+                                      key={payer.id}
+                                      className="flex flex-row items-start space-x-3 space-y-0 p-2 hover:bg-muted/50 rounded-md"
+                                    >
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value?.includes(payer.id)}
+                                          onCheckedChange={(checked) => {
+                                            return checked
+                                              ? field.onChange([...(field.value || []), payer.id])
+                                              : field.onChange(
+                                                  field.value?.filter(
+                                                    (value) => value !== payer.id
+                                                  )
+                                                )
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <div className="flex-1">
+                                        <FormLabel className="text-sm font-medium cursor-pointer">
+                                          {payer.name}
+                                        </FormLabel>
+                                        <p className="text-xs text-muted-foreground">
+                                          {payer.type} • {payer.code}
+                                        </p>
+                                      </div>
+                                    </FormItem>
+                                  )
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </ScrollArea>
+                        <FormMessage />
+                        {form.watch('payer_ids') && form.watch('payer_ids')!.length > 0 && (
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {form.watch('payer_ids')!.length} payer(s) selected
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </CardContent>
+            </Card>
 
             {/* Form Actions */}
             <div className="flex justify-end gap-2 pt-4 border-t">

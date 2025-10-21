@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
 import { useDebounce } from '@/hooks/useDebounce'
-import BulkUploadDoctorsDialog from '@/components/forms/BulkUploadDoctorsDialog'
+
 
 export default function DoctorsPage() {
   const [allDoctors, setAllDoctors] = useState<Doctor[]>([]) // All doctors from API
@@ -36,8 +36,7 @@ export default function DoctorsPage() {
   const [specialties, setSpecialties] = useState<string[]>([])
   const [departments, setDepartments] = useState<string[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(false)
-  const [bulkUploadDialogOpen, setBulkUploadDialogOpen] = useState(false)
-
+ 
   const fetchAllDoctors = async () => {
     try {
       setLoading(true)
@@ -201,11 +200,7 @@ export default function DoctorsPage() {
     fetchAllDoctors()
   }
 
-  const handleBulkUploadSuccess = () => {
-    // Refresh data after bulk upload
-    fetchAllDoctors()
-    fetchFilterOptions() // Refresh filter options as well
-  }
+
 
   return (
     <div className="space-y-6">
@@ -215,13 +210,6 @@ export default function DoctorsPage() {
           <p className="text-gray-600">Manage and view all doctors in the system</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            onClick={() => setBulkUploadDialogOpen(true)} 
-            className="gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Bulk Upload
-          </Button>
           <Button onClick={handleExportDoctors} variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Export CSV
@@ -382,12 +370,7 @@ export default function DoctorsPage() {
         onRefresh={handleDoctorCreate}
       />
 
-      {/* Bulk Upload Dialog */}
-      <BulkUploadDoctorsDialog
-        open={bulkUploadDialogOpen}
-        onOpenChange={setBulkUploadDialogOpen}
-        onSuccess={handleBulkUploadSuccess}
-      />
+     
     </div>
   )
 }

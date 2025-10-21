@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AnimatedStatCard } from '@/components/dashboard/AnimatedStatCard'
 import { useMemo, useEffect, useState } from 'react'
 import { hospitalSummaryApi } from '@/services/hospitalSummaryApi'
+import { toast } from 'sonner'
 
 export default function Dashboard() {
   // State for hospital summary
@@ -69,6 +70,59 @@ export default function Dashboard() {
     ]
   }, [summary])
 
+  const handleExportReport = () => {
+    if (!summary || !hospitalInfo) {
+      toast.error('No data available to export')
+      return
+    }
+
+    try {
+      const exportDate = new Date().toISOString().split('T')[0]
+      const exportTime = new Date().toLocaleString()
+
+      // Prepare CSV content
+      const csvContent = [
+        '# Hospital Summary Report',
+        `# Generated on: ${exportTime}`,
+        '',
+        '## Hospital Information',
+        'Field,Value',
+        `Hospital Name,"${hospitalInfo.name}"`,
+        `Hospital ID,${hospitalInfo.id}`,
+        `Hospital Code,${hospitalInfo.code}`,
+        `City,${hospitalInfo.city}`,
+        `Email,${hospitalInfo.email}`,
+        `Phone,${hospitalInfo.phone}`,
+        '',
+        '## Summary Statistics',
+        'Metric,Count',
+        `Total Departments,${summary.total_departments ?? 0}`,
+        `Total Doctors,${summary.total_doctors ?? 0}`,
+        `Total Hospital Users,${summary.total_hospital_users ?? 0}`,
+        `Total Payer Affiliations,${summary.total_payer_affiliations ?? 0}`,
+        `Total Staff,${summary.total_staff ?? 0}`,
+        `Total Tariffs,${summary.total_tariffs ?? 0}`,
+        `Total TDS Mappings,${summary.total_tds_mappings ?? 0}`,
+        '',
+        `# Report exported on ${exportDate}`,
+      ].join('\n')
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `hospital_summary_report_${exportDate}.csv`
+      link.click()
+      window.URL.revokeObjectURL(url)
+
+      toast.success('Report exported successfully')
+    } catch (error) {
+      console.error('Error exporting report:', error)
+      toast.error('Failed to export report')
+    }
+  }
+
 
 
   // Show loading state
@@ -120,7 +174,7 @@ export default function Dashboard() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExportReport}>
             <Download className="mr-2 h-4 w-4" />
             Export Report
           </Button>

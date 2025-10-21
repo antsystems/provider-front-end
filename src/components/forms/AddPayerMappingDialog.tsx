@@ -127,9 +127,11 @@ export default function AddPayerMappingDialog({
   }
 
   const handleTpaRelationshipChange = useCallback((tpaData: BulkPayerMappingItem) => {
+    console.log('handleTpaRelationshipChange called with:', JSON.stringify(tpaData, null, 2))
     setTpaRelationships(prev => {
       const newMap = new Map(prev)
       newMap.set(tpaData.payer_id, tpaData)
+      console.log('Updated tpaRelationships map, size:', newMap.size, 'keys:', Array.from(newMap.keys()))
       return newMap
     })
   }, [])
@@ -141,13 +143,22 @@ export default function AddPayerMappingDialog({
         // Use TPA relationships endpoint
         const payersWithRelationships: BulkPayerMappingItem[] = []
 
+        console.log('=== TPA Relationships Map Debug ===')
+        console.log('Map size:', tpaRelationships.size)
+        console.log('Map keys:', Array.from(tpaRelationships.keys()))
+        console.log('Map values:', Array.from(tpaRelationships.values()))
+
         // Add TPAs with their relationships
         selectedTPAs.forEach(tpa => {
           const tpaId = tpa.auto_id || tpa.id
+          console.log('Looking up TPA with id:', tpaId, 'auto_id:', tpa.auto_id, 'id:', tpa.id)
           const tpaRelationship = tpaRelationships.get(tpaId)
+          console.log('Found relationship:', tpaRelationship)
+
           if (tpaRelationship) {
             payersWithRelationships.push(tpaRelationship)
           } else {
+            console.warn('No relationship found for TPA:', tpaId, '- using empty array')
             // TPA without relationships
             payersWithRelationships.push({
               payer_id: tpaId,
@@ -167,9 +178,14 @@ export default function AddPayerMappingDialog({
           })
         })
 
-        const response = await tariffsApi.bulkAddPayerMappingsWithRelationships(tariffId, {
+        const requestPayload = {
           payers: payersWithRelationships,
-        })
+        }
+
+        // Log the JSON structure for debugging
+        console.log('TPA Relationships Payload:', JSON.stringify(requestPayload, null, 2))
+
+        const response = await tariffsApi.bulkAddPayerMappingsWithRelationships(tariffId, requestPayload)
 
         toast.success(`Successfully mapped payers with TPA relationships`, {
           description: `${response.summary.total_added} total payer(s) added: ${response.summary.tpas_added} TPA(s), ${response.summary.insurance_companies_added} insurance companies, ${response.summary.other_payers_added} others`,
@@ -240,140 +256,147 @@ export default function AddPayerMappingDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Enable TPA Relationships Toggle */}
-            <FormField
-              control={form.control}
-              name="enable_tpa_relationships"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      Enable TPA Relationships
-                    </FormLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Automatically include insurance companies managed by selected TPAs
-                    </div>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col max-h-[calc(90vh-120px)]">
+            {/* Scrollable content area */}
+            <ScrollArea className="flex-1 overflow-y-auto pr-4">
+              <div className="space-y-4 pb-4">
+                {/* Enable TPA Relationships Toggle */}
+                <FormField
+                  control={form.control}
+                  name="enable_tpa_relationships"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Enable TPA Relationships
+                        </FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Automatically include insurance companies managed by selected TPAs
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
-            {enableTpaRelationships && selectedTPAs.length > 0 && (
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  Expand each TPA below to select which insurance companies it manages. The system will automatically create mappings for both the TPA and its affiliated insurance companies.
-                </AlertDescription>
-              </Alert>
-            )}
+                {enableTpaRelationships && selectedTPAs.length > 0 && (
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      Expand each TPA below to select which insurance companies it manages. The system will automatically create mappings for both the TPA and its affiliated insurance companies.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-            {/* Payer Selection */}
-            <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="all">
-                  All ({availablePayers.length})
-                </TabsTrigger>
-                <TabsTrigger value="tpa">
-                  TPAs ({tpaPayers.length})
-                </TabsTrigger>
-                <TabsTrigger value="insurance">
-                  Insurance ({insuranceCompanies.length})
-                </TabsTrigger>
-                <TabsTrigger value="other">
-                  Others ({otherPayers.length})
-                </TabsTrigger>
-              </TabsList>
+                {/* Payer Selection */}
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="all">
+                      All ({availablePayers.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="tpa">
+                      TPAs ({tpaPayers.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="insurance">
+                      Insurance ({insuranceCompanies.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="other">
+                      Others ({otherPayers.length})
+                    </TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value="all" className="mt-4">
-                <ScrollArea className="h-[300px] border rounded-lg p-4">
-                  <PayerSelectionList
-                    payers={availablePayers}
-                    selectedIds={selectedPayerIds}
-                    onToggle={togglePayer}
-                    isLoading={isLoadingPayers}
-                    affiliatedNames={affiliatedPayerNames}
-                  />
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent value="tpa" className="mt-4">
-                <ScrollArea className="h-[300px] border rounded-lg p-4">
-                  <PayerSelectionList
-                    payers={tpaPayers}
-                    selectedIds={selectedPayerIds}
-                    onToggle={togglePayer}
-                    isLoading={isLoadingPayers}
-                    affiliatedNames={affiliatedPayerNames}
-                  />
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent value="insurance" className="mt-4">
-                <ScrollArea className="h-[300px] border rounded-lg p-4">
-                  <PayerSelectionList
-                    payers={insuranceCompanies}
-                    selectedIds={selectedPayerIds}
-                    onToggle={togglePayer}
-                    isLoading={isLoadingPayers}
-                    affiliatedNames={affiliatedPayerNames}
-                  />
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent value="other" className="mt-4">
-                <ScrollArea className="h-[300px] border rounded-lg p-4">
-                  <PayerSelectionList
-                    payers={otherPayers}
-                    selectedIds={selectedPayerIds}
-                    onToggle={togglePayer}
-                    isLoading={isLoadingPayers}
-                    affiliatedNames={affiliatedPayerNames}
-                  />
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
-
-            {selectedPayerIds.length > 0 && (
-              <div className="text-sm text-muted-foreground">
-                {selectedPayerIds.length} payer(s) selected
-              </div>
-            )}
-
-            {/* TPA Relationships Section */}
-            {enableTpaRelationships && selectedTPAs.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Configure TPA Relationships
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Select insurance companies managed by each TPA. These will be automatically mapped to the tariff.
-                  </p>
-                  <div className="space-y-3">
-                    {selectedTPAs.map(tpa => (
-                      <TPARelationshipSelector
-                        key={tpa.auto_id || tpa.id}
-                        tpa={tpa}
-                        availableInsuranceCompanies={insuranceCompanies}
-                        onChange={handleTpaRelationshipChange}
+                  <TabsContent value="all" className="mt-4">
+                    <ScrollArea className="h-[300px] border rounded-lg p-4">
+                      <PayerSelectionList
+                        payers={availablePayers}
+                        selectedIds={selectedPayerIds}
+                        onToggle={togglePayer}
+                        isLoading={isLoadingPayers}
+                        affiliatedNames={affiliatedPayerNames}
                       />
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+                    </ScrollArea>
+                  </TabsContent>
 
-            <div className="flex justify-end gap-2 pt-4 border-t">
+                  <TabsContent value="tpa" className="mt-4">
+                    <ScrollArea className="h-[300px] border rounded-lg p-4">
+                      <PayerSelectionList
+                        payers={tpaPayers}
+                        selectedIds={selectedPayerIds}
+                        onToggle={togglePayer}
+                        isLoading={isLoadingPayers}
+                        affiliatedNames={affiliatedPayerNames}
+                      />
+                    </ScrollArea>
+                  </TabsContent>
+
+        
+                  <TabsContent value="insurance" className="mt-4">
+                    <ScrollArea className="h-[300px] border rounded-lg p-4">
+                      <PayerSelectionList
+                        payers={insuranceCompanies}
+                        selectedIds={selectedPayerIds}
+                        onToggle={togglePayer}
+                        isLoading={isLoadingPayers}
+                        affiliatedNames={affiliatedPayerNames}
+                      />
+                    </ScrollArea>
+                  </TabsContent>
+
+                  <TabsContent value="other" className="mt-4">
+                    <ScrollArea className="h-[300px] border rounded-lg p-4">
+                      <PayerSelectionList
+                        payers={otherPayers}
+                        selectedIds={selectedPayerIds}
+                        onToggle={togglePayer}
+                        isLoading={isLoadingPayers}
+                        affiliatedNames={affiliatedPayerNames}
+                      />
+                    </ScrollArea>
+                  </TabsContent>
+                </Tabs>
+
+                {selectedPayerIds.length > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    {selectedPayerIds.length} payer(s) selected
+                  </div>
+                )}
+
+                {/* TPA Relationships Section */}
+                {enableTpaRelationships && selectedTPAs.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        Configure TPA Relationships
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Select insurance companies managed by each TPA. These will be automatically mapped to the tariff.
+                      </p>
+                      <div className="space-y-3">
+                        {selectedTPAs.map(tpa => (
+                          <TPARelationshipSelector
+                            key={tpa.auto_id || tpa.id}
+                            tpa={tpa}
+                            availableInsuranceCompanies={insuranceCompanies}
+                            onChange={handleTpaRelationshipChange}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </ScrollArea>
+
+            {/* Fixed footer buttons */}
+            <div className="flex justify-end gap-2 pt-4 border-t mt-2 bg-background">
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>

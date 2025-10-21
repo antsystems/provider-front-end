@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Eye, Stethoscope, Mail, Phone, User, Trash2, Plus } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Eye, Stethoscope, Mail, Phone, User, Trash2, Plus, Upload } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,7 @@ import { doctorsApi } from '@/services/doctorsApi'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import DoctorDetailsDialog from '@/components/forms/DoctorDetailsDialog'
 import AddDoctorDialog from '@/components/forms/AddDoctorDialog'
+import BulkUploadDoctorsDialog from '@/components/forms/BulkUploadDoctorsDialog'
 import { toast } from 'sonner'
 
 interface DoctorsTableProps {
@@ -36,6 +37,8 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+   const [bulkUploadDialogOpen, setBulkUploadDialogOpen] = useState(false)
+
   const confirmDialog = useConfirmDialog()
 
   const handleViewDoctor = (doctor: Doctor) => {
@@ -101,6 +104,11 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
     if (!open) {
       setEditingDoctor(null)
     }
+  }
+
+  const handleBulkUploadSuccess = () => {
+    // Refresh data after bulk upload
+    onRefresh?.()
   }
 
   const formatDate = (dateString: string) => {
@@ -342,10 +350,18 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
             UpdatedTime: false
           }}
           actionButton={
-            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Doctor
-            </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Doctor
+                </Button>
+                <Button onClick={() => setBulkUploadDialogOpen(true)} className="gap-2">
+                  <Upload className="h-4 w-4" />
+                  Bulk Upload
+                </Button>
+              </div>
+            </div>
           }
         />
       </div>
@@ -363,6 +379,13 @@ export function DoctorsTable({ doctors, loading, onView, onUpdate, onDelete, onR
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onSuccess={onRefresh}
+      />
+
+       {/* Bulk Upload Dialog */}
+      <BulkUploadDoctorsDialog
+        open={bulkUploadDialogOpen}
+        onOpenChange={setBulkUploadDialogOpen}
+        onSuccess={handleBulkUploadSuccess}
       />
     </>
   )

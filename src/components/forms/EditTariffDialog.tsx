@@ -89,6 +89,48 @@ export default function EditTariffDialog({
     )
   }
 
+  // Group payer mappings to show TPAs with their affiliated insurance companies
+  const groupPayerMappings = (mappings: any[]) => {
+    const tpaGroups = new Map<string, {
+      tpa_id: string
+      tpa_name: string
+      mapped_at: string
+      mapped_by: string
+      insurances: Array<{
+        insurance_id: string
+        insurance_name: string
+        mapped_at: string
+      }>
+    }>()
+    const directMappings: any[] = []
+
+    mappings.forEach(mapping => {
+      if (mapping.relationship_type === 'TPA_INSURANCE' && mapping.tpa_payer_id && mapping.insurance_payer_id) {
+        // This is a TPA-Insurance relationship
+        if (!tpaGroups.has(mapping.tpa_payer_id)) {
+          tpaGroups.set(mapping.tpa_payer_id, {
+            tpa_id: mapping.tpa_payer_id,
+            tpa_name: mapping.tpa_payer_name || 'Unknown TPA',
+            mapped_at: mapping.mapped_at,
+            mapped_by: mapping.mapped_by,
+            insurances: []
+          })
+        }
+        const group = tpaGroups.get(mapping.tpa_payer_id)!
+        group.insurances.push({
+          insurance_id: mapping.insurance_payer_id,
+          insurance_name: mapping.insurance_payer_name || 'Unknown Insurance',
+          mapped_at: mapping.mapped_at
+        })
+      } else if (mapping.payer_id && mapping.payer_name) {
+        // This is a direct payer mapping (TPA or Insurance without relationships)
+        directMappings.push(mapping)
+      }
+    })
+
+    return { tpaGroups: Array.from(tpaGroups.values()), directMappings }
+  }
+
   const handleDeleteLineItem = async (lineItemId: string) => {
     confirmDialog.open({
       title: 'Delete Line Item',
@@ -474,64 +516,105 @@ export default function EditTariffDialog({
                       <MapPin className="mx-auto h-12 w-12 mb-3 opacity-30" />
                       <p>No payer mappings found</p>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {tariff.payer_mappings.map((mapping) => (
-                        <div
-                          key={mapping.payer_id}
-                          className="flex items-start justify-between p-3 border rounded-lg hover:bg-muted/50"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              {mapping.payer_type === 'TPA' && (
-                                <Building2 className="h-4 w-4 text-muted-foreground" />
-                              )}
-                              {mapping.payer_type === 'Insurance Company' && (
-                                <Shield className="h-4 w-4 text-muted-foreground" />
-                              )}
-                              <span className="font-medium">{mapping.payer_name}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {mapping.payer_type}
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              ID: {mapping.payer_id}
-                            </div>
-                            {mapping.managed_by_tpa && (
+                  ) : (() => {
+                    const { tpaGroups, directMappings } = groupPayerMappings(tariff.payer_mappings)
+                    return (
+                      <div className="space-y-3">
+                        {/* Direct payer mappings (TPAs/Insurance without relationships) */}
+                        {directMappings.map((mapping, index) => (
+                          <div
+                            key={`${mapping.payer_id}-${mapping.mapped_at || index}`}
+                            className="flex items-start justify-between p-3 border rounded-lg hover:bg-muted/50"
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                {mapping.payer_type === 'TPA' && (
+                                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                                )}
+                                {mapping.payer_type === 'Insurance Company' && (
+                                  <Shield className="h-4 w-4 text-muted-foreground" />
+                                )}
+                                <span className="font-medium">{mapping.payer_name}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {mapping.payer_type}
+                                </Badge>
+                              </div>
                               <div className="text-xs text-muted-foreground mt-1">
-                                Managed by: {mapping.managed_by_tpa.payer_name}
+                                Mapped: {formatDate(mapping.mapped_at)}
                               </div>
-                            )}
-                            {mapping.affiliated_insurance_companies &&
-                             mapping.affiliated_insurance_companies.length > 0 && (
-                              <div className="mt-2 pl-4 border-l-2 space-y-1">
-                                <div className="text-xs font-medium text-muted-foreground">
-                                  Manages {mapping.affiliated_insurance_companies.length} insurance{' '}
-                                  {mapping.affiliated_insurance_companies.length === 1 ? 'company' : 'companies'}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeletePayerMapping(mapping.payer_id)}
+                              disabled={deletingPayer === mapping.payer_id}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        ))}
+
+                        {/* TPA groups with affiliated insurance companies */}
+                        {tpaGroups.map((tpaGroup, index) => (
+                          <div
+                            key={`${tpaGroup.tpa_id}-${index}`}
+                            className="border rounded-lg border-l-4 border-l-blue-500"
+                          >
+                            {/* TPA Header */}
+                            <div className="flex items-start justify-between p-3 bg-muted/30">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Building2 className="h-5 w-5 text-blue-500" />
+                                  <span className="font-semibold">{tpaGroup.tpa_name}</span>
+                                  <Badge variant="outline" className="text-xs">
+                                    TPA
+                                  </Badge>
+                                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                    {tpaGroup.insurances.length} insurance{' '}
+                                    {tpaGroup.insurances.length === 1 ? 'company' : 'companies'}
+                                  </Badge>
                                 </div>
-                                {mapping.affiliated_insurance_companies.map((ins) => (
-                                  <div key={ins.payer_id} className="text-xs text-muted-foreground">
-                                    • {ins.payer_name}
-                                  </div>
-                                ))}
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  Mapped: {formatDate(tpaGroup.mapped_at)}
+                                </div>
                               </div>
-                            )}
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Mapped: {formatDate(mapping.mapped_at)}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeletePayerMapping(tpaGroup.tpa_id)}
+                                disabled={deletingPayer === tpaGroup.tpa_id}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+
+                            {/* Affiliated Insurance Companies */}
+                            <div className="p-3 space-y-2 bg-background">
+                              <div className="text-xs font-medium text-muted-foreground mb-2 pl-2">
+                                Affiliated Insurance Companies:
+                              </div>
+                              {tpaGroup.insurances.map((insurance, insIndex) => (
+                                <div
+                                  key={`${insurance.insurance_id}-${insIndex}`}
+                                  className="flex items-start justify-between p-2 pl-6 border-l-2 border-blue-200 ml-2 hover:bg-muted/30 rounded"
+                                >
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <Shield className="h-4 w-4 text-muted-foreground" />
+                                      <span className="font-medium text-sm">{insurance.insurance_name}</span>
+                                      <Badge variant="secondary" className="text-xs">
+                                        Insurance Company
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeletePayerMapping(mapping.payer_id)}
-                            disabled={deletingPayer === mapping.payer_id}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )
+                  })()}
                 </CardContent>
               </Card>
             </TabsContent>

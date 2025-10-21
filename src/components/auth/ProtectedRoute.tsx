@@ -36,9 +36,6 @@ export default function ProtectedRoute({
     if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
       // Redirect to appropriate default page based on role
       const defaultPaths: Record<string, string> = {
-        rm: '/dashboard',
-        rp: '/dashboard',
-        employee: '/claims',
         hospital_admin: '/dashboard'
       };
 

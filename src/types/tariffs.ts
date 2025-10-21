@@ -24,14 +24,22 @@ export interface ManagedByTPA {
 
 // Payer Mapping
 export interface PayerMapping {
-  payer_id: string
-  payer_name: string
+  // Standard payer mapping fields (for direct TPA/Insurance mappings)
+  payer_id?: string
+  payer_name?: string
   payer_type: string
   mapped_at: string
   mapped_by: string
-  // TPA relationships
+  tariff_id?: string
+  // TPA relationships (legacy structure)
   affiliated_insurance_companies?: AffiliatedInsuranceCompany[]
   managed_by_tpa?: ManagedByTPA
+  // TPA-Insurance relationship fields (new structure from API)
+  relationship_type?: 'TPA_INSURANCE'
+  tpa_payer_id?: string
+  tpa_payer_name?: string
+  insurance_payer_id?: string
+  insurance_payer_name?: string
 }
 
 // Tariff
