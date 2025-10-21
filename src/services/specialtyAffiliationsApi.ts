@@ -74,7 +74,14 @@ class SpecialtyAffiliationsApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        
+        // Handle specific backend errors
+        if (errorMessage.includes("'<' not supported between instances of 'NoneType' and 'str'")) {
+          throw new Error('Backend error: Invalid data comparison. Please contact support.');
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data: GetSpecialtyAffiliationResponse = await response.json();

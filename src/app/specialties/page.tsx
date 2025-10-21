@@ -73,6 +73,14 @@ export default function SpecialtiesPage() {
       }
     } catch (error) {
       console.error('Error fetching current affiliation:', error)
+      
+      // Handle specific backend errors
+      if (error instanceof Error && error.message.includes('Backend error: Invalid data comparison')) {
+        console.warn('Backend specialty affiliation service has a data comparison issue. Continuing without current affiliations.')
+        // Continue without showing error to user as this is a backend issue
+        return
+      }
+      
       // Don't show error toast as it's normal to not have an affiliation yet
     }
   }
