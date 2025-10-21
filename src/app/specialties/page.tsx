@@ -162,7 +162,7 @@ export default function SpecialtiesPage() {
         const response = await specialtyAffiliationsApi.createOrUpdateSpecialtyAffiliation({
           specialty_ids: Array.from(selectedSpecialties)
         })
-        successMessage = `Successfully affiliated with ${response.affiliation.specialty_count} specialties`
+        successMessage = `Successfully affiliated with ${response.affiliation?.specialty_count || selectedSpecialties.size} specialties`
       } else {
         // Otherwise, add new ones and remove old ones
         const promises = []
