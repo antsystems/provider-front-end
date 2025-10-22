@@ -21,32 +21,46 @@ function AuthenticationCheck({
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Don't redirect while loading
+    // Skip redirection logic while loading
     if (isLoading) return;
 
-    // If authenticated and should redirect
+    // Handle redirection for authenticated users
     if (isAuthenticated && redirectIfAuthenticated) {
-      // Check for return URL from query params
-      const returnUrl = searchParams.get('returnUrl');
+      const handleRedirect = async () => {
+        try {
+          // Get return URL from query params
+          const returnUrl = searchParams.get('returnUrl');
 
-      let destination = redirectTo;
+          // Determine destination based on precedence:
+          // 1. Explicitly provided redirectTo
+          // 2. Valid returnUrl from query params
+          // 3. Role-based default route
+          // 4. Fallback to dashboard
+          let destination = redirectTo;
 
-      if (!destination) {
-        // Default redirects based on user role
-        if (user?.role === 'employee') {
-          destination = '/claims';
-        } else {
-          destination = '/dashboard';
+          if (!destination && returnUrl && returnUrl.startsWith('/') && !returnUrl.includes('/login')) {
+            destination = returnUrl;
+          }
+
+          if (!destination) {
+            // Role-based default routes
+            destination = user?.role === 'employee' ? '/claims' : '/dashboard';
+          }
+
+          // Perform redirection
+          router.push(destination);
+          
+          // Clear any existing return URL from URL if it exists
+          if (returnUrl) {
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+          }
+        } catch (error) {
+          console.error('Redirection error:', error);
         }
-      }
+      };
 
-      // Use return URL if available and valid
-      if (returnUrl && returnUrl.startsWith('/') && !returnUrl.includes('/login')) {
-        destination = returnUrl;
-      }
-
-      router.push(destination || '/dashboard');
-      return;
+      handleRedirect();
     }
   }, [isAuthenticated, isLoading, user, router, searchParams, redirectIfAuthenticated, redirectTo]);
 

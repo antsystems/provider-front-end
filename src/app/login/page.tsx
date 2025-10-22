@@ -160,7 +160,7 @@ function LoginPageContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-      <PublicRoute>
+      <PublicRoute redirectIfAuthenticated={true}>
         <LoginPageContent />
       </PublicRoute>
     </Suspense>
