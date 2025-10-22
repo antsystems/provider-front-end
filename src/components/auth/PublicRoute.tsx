@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -11,9 +11,9 @@ interface PublicRouteProps {
   redirectTo?: string;
 }
 
-export default function PublicRoute({
+function AuthenticationCheck({
   children,
-  redirectIfAuthenticated = true,
+  redirectIfAuthenticated,
   redirectTo
 }: PublicRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -62,4 +62,12 @@ export default function PublicRoute({
 
   // If not authenticated or should not redirect, render children
   return <>{children}</>;
+}
+
+export default function PublicRoute(props: PublicRouteProps) {
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <AuthenticationCheck {...props} />
+    </Suspense>
+  );
 }

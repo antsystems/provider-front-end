@@ -207,7 +207,7 @@ export default function TariffsPage() {
                     <SelectContent>
                       <SelectItem value="all">All Payers</SelectItem>
                       {uniquePayers.map((payer) => (
-                        <SelectItem key={payer.id} value={payer.name}>
+                        <SelectItem key={payer.id || payer.name} value={payer.name || ''}>
                           {payer.name}
                         </SelectItem>
                       ))}

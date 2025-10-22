@@ -134,7 +134,7 @@ export default function AddPayerAffiliationDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[650px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building className="h-5 w-5 text-primary" />
@@ -162,7 +162,7 @@ export default function AddPayerAffiliationDialog({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Select Payer *</FormLabel>
-                    <Popover open={openPayer} onOpenChange={setOpenPayer}>
+                    <Popover open={openPayer} onOpenChange={setOpenPayer} modal={false}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -189,41 +189,47 @@ export default function AddPayerAffiliationDialog({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[450px] p-0">
-                        <Command>
-                          <CommandInput placeholder="Search payer..." />
-                          <CommandList>
-                            <CommandEmpty>
-                              {availablePayers.length === 0 ? "No payers available." : "No payer found."}
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {availablePayers.map((payer) => (
-                                <CommandItem
-                                  value={payer.name}
-                                  key={payer.id}
-                                  onSelect={() => {
-                                    form.setValue("payer_id", payer.id)
-                                    setOpenPayer(false)
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      payer.id === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  <div>
-                                    <div className="font-medium">{payer.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {payer.type} • Code: {payer.code}
+                      <PopoverContent className="w-[600px] p-0" align="start" side="bottom" onOpenAutoFocus={(e) => e.preventDefault()}>
+                        <Command shouldFilter={true} className="rounded-lg border-none shadow-none">
+                          <CommandInput placeholder="Search payer..." className="h-10" />
+                          <div
+                            className="max-h-[300px] overflow-y-auto overflow-x-hidden"
+                            onWheel={(e) => e.stopPropagation()}
+                          >
+                            <CommandList className="max-h-none overflow-visible">
+                              <CommandEmpty>
+                                {availablePayers.length === 0 ? "No payers available." : "No payer found."}
+                              </CommandEmpty>
+                              <CommandGroup className="overflow-visible p-2">
+                                {availablePayers.map((payer) => (
+                                  <CommandItem
+                                    value={payer.name}
+                                    key={payer.id}
+                                    onSelect={() => {
+                                      form.setValue("payer_id", payer.id)
+                                      setOpenPayer(false)
+                                    }}
+                                    className="cursor-pointer"
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        payer.id === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    <div>
+                                      <div className="font-medium">{payer.name}</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {payer.type} • Code: {payer.code}
+                                      </div>
                                     </div>
-                                  </div>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </div>
                         </Command>
                       </PopoverContent>
                     </Popover>

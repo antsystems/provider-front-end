@@ -10,10 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Stethoscope, Search, CheckCircle2, Circle, RotateCcw, ListFilter, X, Trash2, Bug } from 'lucide-react'
+import { Stethoscope, Search, CheckCircle2, Circle, RotateCcw, ListFilter, X, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { StatsCardSkeleton } from '@/components/ui/card-skeleton'
-import SpecialtyDebugDialog from '@/components/debug/SpecialtyDebugDialog'
 import { SpecialtyMultiSelect } from '@/components/specialty/SpecialtyMultiSelect'
 import { VirtualizedSpecialtyList } from '@/components/specialty/VirtualizedSpecialtyList'
 import {
@@ -37,7 +36,6 @@ export default function SpecialtiesPage() {
   const [initialSelectedSpecialties, setInitialSelectedSpecialties] = useState<Set<string>>(new Set())
   const [specialtyToRemove, setSpecialtyToRemove] = useState<string | null>(null)
   const [removing, setRemoving] = useState(false)
-  const [debugDialogOpen, setDebugDialogOpen] = useState(false)
 
   const fetchSpecialties = async () => {
     try {
@@ -246,14 +244,6 @@ export default function SpecialtiesPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDebugDialogOpen(true)}
-              className="gap-2"
-            >
-              <Bug className="h-4 w-4" />
-              Debug Specialty
-            </Button>
             <Button
               variant="outline"
               onClick={async () => {
@@ -486,12 +476,6 @@ export default function SpecialtiesPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        {/* Specialty Debug Dialog */}
-        <SpecialtyDebugDialog
-          open={debugDialogOpen}
-          onOpenChange={setDebugDialogOpen}
-        />
       </div>
     </MainLayout>
   )

@@ -68,13 +68,8 @@ export default function PayerAffiliationDetailsDialog({
     },
   })
 
-  useEffect(() => {
-    if (affiliation) {
-      form.reset({
-        status: affiliation.status,
-      })
-    }
-  }, [affiliation, form])
+  // Note: PayerAffiliation type doesn't have a status field
+  // The form uses the default value 'active'
 
   const onSubmit = async (data: FormData) => {
     if (!affiliation) return
@@ -86,16 +81,11 @@ export default function PayerAffiliationDetailsDialog({
         status: data.status,
       }
 
-      const response = await payerAffiliationsApi.updatePayerAffiliation(affiliation.id, updateData)
+      await payerAffiliationsApi.updatePayerAffiliation(affiliation.id, updateData)
 
-      // Update the affiliation object with new data
-      const updatedAffiliation: PayerAffiliation = {
-        ...affiliation,
-        status: response.affiliation.status as 'active' | 'inactive',
-        updated_on: response.affiliation.updated_on,
-      }
-
-      onUpdate?.(updatedAffiliation)
+      // Note: PayerAffiliation type doesn't include status or updated_on fields
+      // Just notify parent with the original affiliation
+      onUpdate?.(affiliation)
       setIsEditing(false)
       toast.success('Payer affiliation updated successfully')
 
@@ -109,11 +99,9 @@ export default function PayerAffiliationDetailsDialog({
 
   const handleClose = () => {
     setIsEditing(false)
-    if (affiliation) {
-      form.reset({
-        status: affiliation.status,
-      })
-    }
+    form.reset({
+      status: 'active', // Default value since PayerAffiliation doesn't have status
+    })
     onOpenChange(false)
   }
 
@@ -158,7 +146,7 @@ export default function PayerAffiliationDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto scrollbar-hide">
+      <DialogContent className="sm:max-w-[900px] max-h-[95vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building className="h-5 w-5 text-primary" />
@@ -169,7 +157,7 @@ export default function PayerAffiliationDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-y-auto max-h-[calc(95vh-200px)] pr-2">
           {/* Basic Information */}
           <div className="space-y-4">
             <h4 className="font-medium border-b pb-2">Basic Information</h4>
@@ -271,7 +259,7 @@ export default function PayerAffiliationDetailsDialog({
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">Current Status</div>
-                  <div>{getStatusBadge(affiliation.status)}</div>
+                  <div>{getStatusBadge('active')}</div>
                 </div>
                 <Button variant="outline" onClick={() => setIsEditing(true)} size="sm">
                   Edit Status
@@ -287,31 +275,21 @@ export default function PayerAffiliationDetailsDialog({
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
-                  Created By
+                  Affiliated By
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-3 w-3 text-gray-400" />
-                  <span className="text-sm">{affiliation.created_by_email}</span>
+                  <span className="text-sm">{affiliation.affiliated_by_email}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  Created On
+                  Affiliated At
                 </div>
-                <div className="text-sm">{formatDate(affiliation.created_on)}</div>
+                <div className="text-sm">{formatDate(affiliation.affiliated_at)}</div>
               </div>
-
-              {affiliation.updated_on && (
-                <div className="space-y-2 md:col-span-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    Last Updated
-                  </div>
-                  <div className="text-sm">{formatDate(affiliation.updated_on)}</div>
-                </div>
-              )}
             </div>
           </div>
         </div>

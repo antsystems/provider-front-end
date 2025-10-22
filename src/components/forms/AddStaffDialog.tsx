@@ -46,6 +46,9 @@ const createStaffSchema = z.object({
   contact_number: z.string().min(10, 'Contact number must be at least 10 characters'),
   email: z.string().email('Invalid email address'),
   department_name: z.string().min(1, 'Department is required'),
+  designation: z.string().optional(),
+  qualification: z.string().optional(),
+  experience_years: z.number().min(0, 'Experience must be 0 or more').optional(),
 })
 
 type CreateStaffFormValues = z.infer<typeof createStaffSchema>
@@ -73,6 +76,9 @@ export default function AddStaffDialog({
       contact_number: '',
       email: '',
       department_name: '',
+      designation: '',
+      qualification: '',
+      experience_years: 0,
     },
   })
 
@@ -103,6 +109,9 @@ export default function AddStaffDialog({
         contact_number: values.contact_number,
         email: values.email,
         department_name: values.department_name,
+        designation: values.designation || undefined,
+        qualification: values.qualification || undefined,
+        experience_years: values.experience_years || undefined,
       }
 
       await staffApi.createStaff(createData)
@@ -199,72 +208,126 @@ export default function AddStaffDialog({
               </div>
             </div>
 
-            {/* Department */}
+            {/* Department & Professional Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Building className="h-4 w-4" />
-                Department
+                Professional Information
               </h3>
 
-              <FormField
-                control={form.control}
-                name="department_name"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Department *</FormLabel>
-                    <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
-                      <PopoverTrigger asChild>
+              <div className="grid grid-cols-1 gap-4">
+                <FormField
+                  control={form.control}
+                  name="department_name"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Department *</FormLabel>
+                      <Popover open={openDepartment} onOpenChange={setOpenDepartment} modal={false}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openDepartment}
+                              disabled={isLoadingOptions}
+                              className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value || (isLoadingOptions ? "Loading..." : "Select a department")}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search department..." />
+                            <div className="max-h-[200px] overflow-y-auto overflow-x-hidden" onWheel={(e) => e.stopPropagation()}>
+                              <CommandList className="max-h-none overflow-visible">
+                                <CommandEmpty>No department found.</CommandEmpty>
+                                <CommandGroup>
+                                  {departments.map((department) => (
+                                    <CommandItem
+                                      value={department}
+                                      key={department}
+                                      onSelect={() => {
+                                        form.setValue("department_name", department)
+                                        setOpenDepartment(false)
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          department === field.value
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {department}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </div>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="designation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Designation</FormLabel>
                         <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openDepartment}
-                            disabled={isLoadingOptions}
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value || (isLoadingOptions ? "Loading..." : "Select a department")}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
+                          <Input {...field} placeholder="e.g. Senior Nurse, Lab Technician" />
                         </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[300px] p-0">
-                        <Command>
-                          <CommandInput placeholder="Search department..." />
-                          <CommandList>
-                            <CommandEmpty>No department found.</CommandEmpty>
-                            <CommandGroup>
-                              {departments.map((department) => (
-                                <CommandItem
-                                  value={department}
-                                  key={department}
-                                  onSelect={() => {
-                                    form.setValue("department_name", department)
-                                    setOpenDepartment(false)
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      department === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {department}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="experience_years"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Experience (Years)</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="qualification"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Qualification</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g. B.Sc Nursing, DMLT, MSW" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Form Actions */}
