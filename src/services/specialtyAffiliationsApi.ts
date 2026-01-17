@@ -38,7 +38,7 @@ class SpecialtyAffiliationsApiService {
       }
     }
 
-    const url = `${this.baseUrl}/specialty-affiliations/available-specialties`;
+    const url = `${this.baseUrl}/specialty-affiliations/available-specialties?limit=1000`;
 
     try {
       const response = await fetch(url, {

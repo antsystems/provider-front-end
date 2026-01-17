@@ -36,6 +36,9 @@ class PayerAffiliationsApiService {
 
     if (filters.status) params.set('status', filters.status);
     if (filters.payer_type) params.set('payer_type', filters.payer_type);
+    
+    // Set high limit to fetch all payer affiliations (backend default is 100)
+    params.set('limit', '1000');
 
     const url = `${this.baseUrl}/payer-affiliations${params.toString() ? '?' + params.toString() : ''}`;
 
@@ -288,6 +291,14 @@ class PayerAffiliationsApiService {
    */
   clearAvailablePayersCache(): void {
     clearCache('available-payers');
+  }
+
+  /**
+   * Clear the payer affiliations cache
+   */
+  clearPayerAffiliationsCache(): void {
+    // Clear any cache related to payer affiliations
+    clearCache('payer-affiliations');
   }
 
   async getPayersByType(filters: PayersApiFilters = {}): Promise<PayersByTypeResponse> {

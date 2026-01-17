@@ -23,6 +23,10 @@ class DoctorsApiService {
     if (filters.specialty_name) params.set('specialty_name', filters.specialty_name);
     if (filters.department_name) params.set('department_name', filters.department_name);
     if (filters.status) params.set('status', filters.status);
+    
+    // Set high limit to fetch all doctors (backend default is 100)
+    // Always set a high limit unless explicitly overridden
+    params.set('limit', '1000');
 
     const url = `${this.baseUrl}/doctors${params.toString() ? '?' + params.toString() : ''}`;
 

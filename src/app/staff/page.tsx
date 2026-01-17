@@ -57,9 +57,10 @@ export default function StaffPage() {
       setError(null)
 
       // Fetch staff with pagination and filters
+      // Use high limit to fetch all staff (backend default is 100)
       const response = await staffApi.getStaff({
         page,
-        limit: 100,
+        limit: 1000, // Increased from 100 to fetch all staff
         department_name: filters.department_name,
         status: filters.status,
       })

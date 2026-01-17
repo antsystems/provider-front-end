@@ -30,6 +30,8 @@ export default function PayerAffiliationsPage() {
   const fetchAffiliations = async () => {
     try {
       setLoading(true)
+      // Clear cache to ensure fresh data
+      payerAffiliationsApi.clearPayerAffiliationsCache()
       const response = await payerAffiliationsApi.getPayerAffiliations()
       setAffiliations(response.affiliations)
     } catch (error) {
