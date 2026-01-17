@@ -19,6 +19,10 @@ export interface Staff {
   UpdatedBy: string;
   UpdatedByEmail: string;
   UpdatedTime: string;
+  // Optional fields that may not be in API response
+  designation?: string;
+  qualification?: string;
+  experience_years?: number;
 }
 
 export interface Pagination {
@@ -46,13 +50,16 @@ export interface CreateStaffRequest {
   contact_number: string;
   email: string;
   department_name: string;
+  designation?: string;
+  qualification?: string;
+  experience_years?: number;
 }
 
 export interface UpdateStaffRequest {
   name?: string;
   phone_number?: string;
   email?: string;
-  department_id?: string;
+  department_name?: string;
   designation?: string;
   qualification?: string;
   experience_years?: number;

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import LoadingScreen from './LoadingScreen'
 
@@ -8,7 +8,7 @@ interface GlobalLoadingProviderProps {
   children: React.ReactNode
 }
 
-export default function GlobalLoadingProvider({ children }: GlobalLoadingProviderProps) {
+function LoadingHandler({ children }: GlobalLoadingProviderProps) {
   const [isLoading, setIsLoading] = useState(false)
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -40,5 +40,13 @@ export default function GlobalLoadingProvider({ children }: GlobalLoadingProvide
       )}
       {children}
     </>
+  )
+}
+
+export default function GlobalLoadingProvider({ children }: GlobalLoadingProviderProps) {
+  return (
+    <Suspense fallback={<LoadingScreen isLoading={true} />}>
+      <LoadingHandler>{children}</LoadingHandler>
+    </Suspense>
   )
 }

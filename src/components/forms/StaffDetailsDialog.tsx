@@ -99,10 +99,10 @@ export default function StaffDetailsDialog({
   useEffect(() => {
     if (staff) {
       form.reset({
-        name: staff.name || '',
+        name: staff.staff_name || '',
         email: staff.email || '',
-        phone_number: staff.phone_number || '',
-        department_id: staff.department_id || '',
+        phone_number: staff.contact_number || '',
+        department_id: staff.department_name || '', // Use department_name since API only returns names
         designation: staff.designation || '',
         qualification: staff.qualification || '',
         experience_years: staff.experience_years || 0,
@@ -117,19 +117,11 @@ export default function StaffDetailsDialog({
 
       setIsLoadingOptions(true)
       try {
-        const { departmentsApi } = await import('@/services/departmentsApi')
-        const departmentsResponse = await departmentsApi.getDepartments({ include_inactive: false })
-        // Map departments to have id and name, deduplicate by id
-        const deptMap = new Map<string, { id: string; name: string }>()
-        departmentsResponse.departments.forEach(dept => {
-          if (dept.department_id && dept.department_name) {
-            deptMap.set(dept.department_id, {
-              id: dept.department_id,
-              name: dept.department_name
-            })
-          }
-        })
-        const deptList = Array.from(deptMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+        const departmentsResponse = await staffApi.getAvailableDepartments()
+        // API returns { department_names: string[] }
+        const departmentNames = departmentsResponse.department_names || []
+        // Create department objects with name as both id and name for compatibility
+        const deptList = departmentNames.map(name => ({ id: name, name })).sort((a, b) => a.name.localeCompare(b.name))
         setDepartments(deptList)
       } catch (error) {
         console.error('Error fetching departments:', error)
@@ -158,14 +150,14 @@ export default function StaffDetailsDialog({
         name: values.name,
         email: values.email,
         phone_number: values.phone_number,
-        department_id: values.department_id,
+        department_name: values.department_id, // Send as department_name
         designation: values.designation,
         qualification: values.qualification,
         experience_years: values.experience_years,
         status: values.status,
       }
 
-      const response = await staffApi.updateStaff(staff.id, updateData)
+      const response = await staffApi.updateStaff(staff.staff_id, updateData)
 
       toast.success('Staff member updated successfully')
       onUpdate?.(response.staff)
@@ -181,10 +173,10 @@ export default function StaffDetailsDialog({
   const handleCancel = () => {
     if (staff) {
       form.reset({
-        name: staff.name || '',
+        name: staff.staff_name || '',
         email: staff.email || '',
-        phone_number: staff.phone_number || '',
-        department_id: staff.department_id || '',
+        phone_number: staff.contact_number || '',
+        department_id: staff.department_name || '', // Use department_name
         designation: staff.designation || '',
         qualification: staff.qualification || '',
         experience_years: staff.experience_years || 0,
@@ -220,8 +212,7 @@ export default function StaffDetailsDialog({
                   <User className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">{staff.name}</h3>
-                  <p className="text-sm text-muted-foreground">Staff ID: {staff.staff_id}</p>
+                  <h3 className="font-semibold text-lg">{staff.staff_name}</h3>
                 </div>
               </div>
 
@@ -232,23 +223,29 @@ export default function StaffDetailsDialog({
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{staff.phone_number}</span>
+                  <span>{staff.contact_number}</span>
                 </div>
                 <div className="col-span-2 space-y-2">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{staff.department}</span>
+                    <span className="font-medium">{staff.department_name}</span>
                   </div>
+                  {staff.designation && (
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span>{staff.designation}</span>
                   </div>
+                  )}
+                  {staff.qualification && (
                   <div className="text-sm">
                     <span className="text-muted-foreground">Qualification:</span> {staff.qualification}
                   </div>
+                  )}
+                  {staff.experience_years !== undefined && (
                   <div className="text-sm">
                     <span className="text-muted-foreground">Experience:</span> {staff.experience_years} years
                   </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge
@@ -270,19 +267,19 @@ export default function StaffDetailsDialog({
               <div className="grid grid-cols-1 gap-2 text-sm bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Created:</span>
-                  <span>{formatDate(staff.created_at)}</span>
+                  <span>{formatDate(staff.CreatedDate)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Last Updated:</span>
-                  <span>{formatDate(staff.updated_at)}</span>
+                  <span>{formatDate(staff.UpdatedTime || staff.EditedDate)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Created By:</span>
-                  <span className="truncate">{staff.created_by_name || staff.created_by_email}</span>
+                  <span className="truncate">{staff.CreatedByEmail}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Updated By:</span>
-                  <span className="truncate">{staff.updated_by_name || staff.updated_by_email}</span>
+                  <span className="truncate">{staff.UpdatedByEmail || staff.EditedByEmail}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Hospital:</span>
@@ -353,7 +350,7 @@ export default function StaffDetailsDialog({
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Department</FormLabel>
-                      <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
+                      <Popover open={openDepartment} onOpenChange={setOpenDepartment} modal={false}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -366,9 +363,7 @@ export default function StaffDetailsDialog({
                               )}
                               disabled={!isEditing || isLoadingOptions}
                             >
-                              {field.value
-                                ? departments.find((dept) => dept.id === field.value)?.name
-                                : isLoadingOptions ? "Loading departments..." : "Select department"}
+                              {field.value || (isLoadingOptions ? "Loading departments..." : "Select department")}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </FormControl>
@@ -376,29 +371,31 @@ export default function StaffDetailsDialog({
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                           <Command>
                             <CommandInput placeholder="Search department..." />
-                            <CommandList className="max-h-[200px] overflow-y-auto scrollbar-hide">
-                              <CommandEmpty>No department found.</CommandEmpty>
-                              <CommandGroup>
-                                {departments.map((dept) => (
-                                  <CommandItem
-                                    key={dept.id}
-                                    value={dept.name}
-                                    onSelect={() => {
-                                      field.onChange(dept.id)
-                                      setOpenDepartment(false)
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value === dept.id ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    {dept.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
+                            <div className="max-h-[200px] overflow-y-auto overflow-x-hidden" onWheel={(e) => e.stopPropagation()}>
+                              <CommandList className="max-h-none overflow-visible">
+                                <CommandEmpty>No department found.</CommandEmpty>
+                                <CommandGroup>
+                                  {departments.map((dept) => (
+                                    <CommandItem
+                                      key={dept.name}
+                                      value={dept.name}
+                                      onSelect={() => {
+                                        field.onChange(dept.name)
+                                        setOpenDepartment(false)
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === dept.name ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      {dept.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </div>
                           </Command>
                         </PopoverContent>
                       </Popover>
