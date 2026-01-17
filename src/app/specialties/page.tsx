@@ -56,6 +56,7 @@ export default function SpecialtiesPage() {
 
       // Map affiliated specialties from API response to id (document ID) from available specialties
       // The API returns AffiliatedSpecialty which has specialty_name, specialty_code, but may also have specialty_id
+      // This ensures proper mapping regardless of whether backend sends specialty_id field or document ID
       const mapAffiliatedSpecialtyToId = (affiliated: any): string | null => {
         // First try to find by specialty_id if it exists in the response
         if (affiliated.specialty_id) {
