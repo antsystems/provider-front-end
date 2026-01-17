@@ -53,7 +53,7 @@ export default function BulkUpdateStatusDialog({
 
     try {
       const bulkData: BulkUpdateStatusRequest = {
-        user_ids: selectedUsers.map(user => user.user_id).filter((id): id is string => id !== undefined),
+        user_ids: selectedUsers.map(user => user.user_id).filter((id): id is string => !!id),
         status: selectedStatus as 'active' | 'inactive' | 'pending_password_set'
       }
 
@@ -86,7 +86,10 @@ export default function BulkUpdateStatusDialog({
     onOpenChange(false)
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | undefined) => {
+    if (!status) {
+      return <Badge variant="outline">Unknown</Badge>
+    }
     const statusConfig = USER_STATUS_OPTIONS.find(opt => opt.value === status)
     switch (status) {
       case 'active':
@@ -128,7 +131,7 @@ export default function BulkUpdateStatusDialog({
                     <span className="font-medium">{user.name}</span>
                     <span className="text-muted-foreground ml-2">({user.email})</span>
                   </div>
-                  {getStatusBadge(user.status || 'unknown')}
+                  {getStatusBadge(user.status)}
                 </div>
               ))}
             </div>

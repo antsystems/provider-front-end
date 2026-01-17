@@ -109,9 +109,11 @@ export default function BulkAffiliatePayersDialog({
   useEffect(() => {
     let filtered = availablePayers
 
-    // Filter by type
+    // Filter by type (case-insensitive to handle inconsistent capitalization)
     if (typeFilter !== 'all') {
-      filtered = filtered.filter(payer => payer.type === typeFilter)
+      filtered = filtered.filter(payer => 
+        payer.type?.trim().toLowerCase() === typeFilter.toLowerCase()
+      )
     }
 
     // Filter by search query
@@ -207,7 +209,21 @@ export default function BulkAffiliatePayersDialog({
     )
   }
 
-  const uniquePayerTypes = [...new Set(availablePayers.map(p => p.type))]
+  // Normalize payer types to avoid duplicates with different capitalization
+  // Use a Map to preserve the first occurrence's original capitalization
+  const payerTypeMap = new Map<string, string>()
+  availablePayers
+    .map(p => p.type)
+    .filter(type => type && type.trim() !== '')
+    .forEach(type => {
+      const normalized = type.trim()
+      const lowerKey = normalized.toLowerCase()
+      // Only keep the first occurrence of each type (case-insensitive)
+      if (!payerTypeMap.has(lowerKey)) {
+        payerTypeMap.set(lowerKey, normalized)
+      }
+    })
+  const uniquePayerTypes = Array.from(payerTypeMap.values()).sort()
   const isAllSelected = filteredPayers.length > 0 && filteredPayers.every(payer => selectedPayerIds.includes(payer.id))
   const isSomeSelected = filteredPayers.some(payer => selectedPayerIds.includes(payer.id))
 

@@ -48,7 +48,7 @@ export function VirtualizedSpecialtyList({
 
   // Filter out specialties with null IDs and create valid items array
   const validSpecialties = specialties.filter((s): s is Specialty => 
-    Boolean(s && s.specialty_id)
+    Boolean(s && s.id)
   )
   
   const totalHeight = Math.ceil(validSpecialties.length / ITEMS_PER_ROW) * ITEM_HEIGHT
@@ -72,12 +72,12 @@ export function VirtualizedSpecialtyList({
         >
           {visibleItems.map((specialty, index) => {
             // Use compound key that combines ID and index for uniqueness
-            const key = `${specialty.specialty_id}-${index}`
-            const isSelected = selectedIds.has(specialty.specialty_id)
+            const key = `${specialty.id}-${index}`
+            const isSelected = selectedIds.has(specialty.id)
             return (
               <div
                 key={key}
-                onClick={() => onToggle(specialty.specialty_id)}
+                onClick={() => onToggle(specialty.id)}
                 className={`
                   p-4 rounded-lg border-2 transition-all cursor-pointer
                   ${isSelected

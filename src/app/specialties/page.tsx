@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import MainLayout from '@/components/layout/MainLayout'
 import { specialtyAffiliationsApi } from '@/services/specialtyAffiliationsApi'
@@ -54,20 +54,59 @@ export default function SpecialtiesPage() {
     try {
       const response = await specialtyAffiliationsApi.getSpecialtyAffiliation()
 
+      // Map affiliated specialties from API response to id (document ID) from available specialties
+      // The API returns AffiliatedSpecialty which has specialty_name, specialty_code, but may also have specialty_id
+      const mapAffiliatedSpecialtyToId = (affiliated: any): string | null => {
+        // First try to find by specialty_id if it exists in the response
+        if (affiliated.specialty_id) {
+          const specialty = specialties.find(s => s.specialty_id === affiliated.specialty_id)
+          if (specialty) return specialty.id
+        }
+        
+        // Fallback: try to match by specialty_name (case-insensitive)
+        if (affiliated.specialty_name) {
+          const specialty = specialties.find(s => 
+            s.specialty_name?.toLowerCase() === affiliated.specialty_name?.toLowerCase()
+          )
+          if (specialty) return specialty.id
+        }
+        
+        // Fallback: try to match by specialty_code
+        if (affiliated.specialty_code) {
+          const specialty = specialties.find(s => 
+            s.specialty_code?.toLowerCase() === affiliated.specialty_code?.toLowerCase()
+          )
+          if (specialty) return specialty.id
+        }
+        
+        console.warn('Could not map affiliated specialty to available specialty:', affiliated)
+        return null
+      }
+
       // Check if we have an affiliation
       if (response.affiliation && response.affiliation.affiliated_specialties) {
-        const affiliatedIds = response.affiliation.affiliated_specialties.map(
-          s => s.specialty_id
-        )
+        const affiliatedIds = response.affiliation.affiliated_specialties
+          .map(mapAffiliatedSpecialtyToId)
+          .filter((id): id is string => id !== null) // Filter out nulls
         const affiliatedSet = new Set(affiliatedIds)
         setSelectedSpecialties(affiliatedSet)
         setInitialSelectedSpecialties(affiliatedSet)
+        console.log('Mapped affiliated specialties:', { 
+          fromApi: response.affiliation.affiliated_specialties.length,
+          mapped: affiliatedIds.length 
+        })
       } else if (response.affiliated_specialties) {
         // Fallback for alternative response structure
-        const affiliatedIds = response.affiliated_specialties.map(s => s.specialty_id)
+        const affiliatedIds = response.affiliated_specialties
+          .map(mapAffiliatedSpecialtyToId)
+          .filter((id): id is string => id !== null) // Filter out nulls
         const affiliatedSet = new Set(affiliatedIds)
         setSelectedSpecialties(affiliatedSet)
         setInitialSelectedSpecialties(affiliatedSet)
+        console.log('Mapped affiliated specialties (fallback):', { 
+          fromApi: response.affiliated_specialties.length,
+          mapped: affiliatedIds.length 
+        })
       }
     } catch (error) {
       console.error('Error fetching current affiliation:', error)
@@ -95,10 +134,29 @@ export default function SpecialtiesPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([fetchSpecialties(), fetchCurrentAffiliation()])
+      // Fetch specialties first
+      await fetchSpecialties()
+      // Then fetch affiliations (will be called again when specialties state updates)
     }
     loadData()
   }, [])
+
+  // Track if affiliations have been loaded to prevent duplicate fetches
+  const affiliationsLoadedRef = useRef(false)
+  
+  // Fetch affiliations after specialties are loaded (needed to map specialty_id to id)
+  useEffect(() => {
+    // Fetch affiliations once when specialties are first loaded
+    if (specialties.length > 0 && !affiliationsLoadedRef.current) {
+      console.log('Fetching affiliations with', specialties.length, 'specialties available')
+      affiliationsLoadedRef.current = true
+      fetchCurrentAffiliation().catch(() => {
+        // Reset on error so we can retry if needed
+        affiliationsLoadedRef.current = false
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [specialties.length]) // Only when specialties count changes
 
   // Filter specialties based on search query
   const filteredSpecialties = useMemo(() => {
@@ -114,7 +172,7 @@ export default function SpecialtiesPage() {
 
   // Get selected specialties with full details
   const selectedSpecialtiesWithDetails = useMemo(() => {
-    return specialties.filter(s => selectedSpecialties.has(s.specialty_id))
+    return specialties.filter(s => selectedSpecialties.has(s.id))
   }, [specialties, selectedSpecialties])
 
   // Check if there are changes from initial state
@@ -138,7 +196,7 @@ export default function SpecialtiesPage() {
   }
 
   const selectAll = () => {
-    const allIds = new Set(filteredSpecialties.map(s => s.specialty_id))
+    const allIds = new Set(filteredSpecialties.map(s => s.id))
     setSelectedSpecialties(allIds)
   }
 
@@ -413,9 +471,9 @@ export default function SpecialtiesPage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedSpecialtiesWithDetails.map((specialty, index) => (
+                    {selectedSpecialtiesWithDetails.map((specialty) => (
                       <div
-                        key={`${specialty.specialty_id}-${index}`}
+                        key={specialty.id}
                         className="p-4 rounded-lg border-2 border-primary bg-primary/5 shadow-sm transition-all relative group"
                       >
                         <div className="flex items-start gap-3">
@@ -441,7 +499,7 @@ export default function SpecialtiesPage() {
                             variant="ghost"
                             size="icon"
                             className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setSpecialtyToRemove(specialty.specialty_id)}
+                            onClick={() => setSpecialtyToRemove(specialty.id)}
                           >
                             <X className="h-4 w-4" />
                           </Button>

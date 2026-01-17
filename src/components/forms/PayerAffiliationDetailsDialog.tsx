@@ -68,8 +68,13 @@ export default function PayerAffiliationDetailsDialog({
     },
   })
 
-  // Note: PayerAffiliation type doesn't have a status field
-  // The form uses the default value 'active'
+  useEffect(() => {
+    if (affiliation) {
+      form.reset({
+        status: 'active', // PayerAffiliation doesn't have status property, default to active
+      })
+    }
+  }, [affiliation, form])
 
   const onSubmit = async (data: FormData) => {
     if (!affiliation) return
@@ -81,11 +86,15 @@ export default function PayerAffiliationDetailsDialog({
         status: data.status,
       }
 
-      await payerAffiliationsApi.updatePayerAffiliation(affiliation.id, updateData)
+      const response = await payerAffiliationsApi.updatePayerAffiliation(affiliation.id, updateData)
 
-      // Note: PayerAffiliation type doesn't include status or updated_on fields
-      // Just notify parent with the original affiliation
-      onUpdate?.(affiliation)
+      // Update the affiliation object with new data
+      // Note: PayerAffiliation type doesn't include status or updated_on
+      const updatedAffiliation: PayerAffiliation = {
+        ...affiliation,
+      }
+
+      onUpdate?.(updatedAffiliation)
       setIsEditing(false)
       toast.success('Payer affiliation updated successfully')
 
@@ -99,9 +108,11 @@ export default function PayerAffiliationDetailsDialog({
 
   const handleClose = () => {
     setIsEditing(false)
-    form.reset({
-      status: 'active', // Default value since PayerAffiliation doesn't have status
-    })
+    if (affiliation) {
+      form.reset({
+        status: 'active', // PayerAffiliation doesn't have status property, default to active
+      })
+    }
     onOpenChange(false)
   }
 
@@ -146,7 +157,7 @@ export default function PayerAffiliationDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[95vh]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building className="h-5 w-5 text-primary" />
@@ -157,7 +168,7 @@ export default function PayerAffiliationDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 overflow-y-auto max-h-[calc(95vh-200px)] pr-2">
+        <div className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
             <h4 className="font-medium border-b pb-2">Basic Information</h4>
@@ -259,7 +270,7 @@ export default function PayerAffiliationDetailsDialog({
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">Current Status</div>
-                  <div>{getStatusBadge('active')}</div>
+                  <div>{getStatusBadge(form.watch('status') || 'active')}</div>
                 </div>
                 <Button variant="outline" onClick={() => setIsEditing(true)} size="sm">
                   Edit Status
@@ -275,7 +286,7 @@ export default function PayerAffiliationDetailsDialog({
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
-                  Affiliated By
+                  Created By
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-3 w-3 text-gray-400" />

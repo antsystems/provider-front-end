@@ -80,8 +80,8 @@ export default function TariffsPage() {
         tariff.payer_mappings
           .filter(mapping => mapping?.payer_id && mapping?.payer_name)
           .map(mapping => [
-            mapping.payer_id,
-            { id: mapping.payer_id, name: mapping.payer_name }
+            mapping.payer_id!,
+            { id: mapping.payer_id!, name: mapping.payer_name! }
           ])
       )
     ).values()
