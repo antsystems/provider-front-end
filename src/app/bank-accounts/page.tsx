@@ -70,7 +70,7 @@ export default function BankAccountsPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Bank Accounts</h1>
             <p className="text-muted-foreground">
-              Manage your hospital's bank accounts
+              Manage your hospital's bank accounts and payment information
             </p>
           </div>
           <Button
