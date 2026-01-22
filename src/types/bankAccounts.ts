@@ -11,6 +11,7 @@ export interface BankAccount {
   ifsc_code?: string;
   branch?: string;
   remarks?: string;
+  hospital_id?: string; // Hospital-specific - backend filters by authenticated user's hospital
   created_at?: string;
   created_by?: string;
   created_by_email?: string;

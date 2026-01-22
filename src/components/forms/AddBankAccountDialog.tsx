@@ -146,14 +146,14 @@ export default function AddBankAccountDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
             Add Bank Account
           </DialogTitle>
           <DialogDescription>
-            Create a new bank account for your hospital. Select a bank and enter the account number.
+            Create a new bank account for your hospital. Select a bank and enter the account details.
           </DialogDescription>
         </DialogHeader>
 

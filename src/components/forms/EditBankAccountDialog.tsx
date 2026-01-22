@@ -119,14 +119,14 @@ export default function EditBankAccountDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
             Edit Bank Account
           </DialogTitle>
           <DialogDescription>
-            Update the bank account number for {account.bank_name}.
+            Update the bank account details for {account.bank_name}.
           </DialogDescription>
         </DialogHeader>
 
