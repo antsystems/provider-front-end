@@ -20,7 +20,8 @@ import {
   Building2,
   IndianRupee,
   Percent,
-  Activity
+  Activity,
+  CreditCard
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -98,7 +99,12 @@ const navigationItems: NavItem[] = [
     title: 'TDS Mapping',
     href: '/tds-mapping',
     icon: Percent,
-     divider: true,
+    divider: true,
+  },
+  {
+    title: 'Bank Accounts',
+    href: '/bank-accounts',
+    icon: CreditCard,
   },
   {
     title: 'Profile',
