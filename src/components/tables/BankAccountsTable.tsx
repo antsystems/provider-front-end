@@ -48,7 +48,8 @@ export function BankAccountsTable({ bankAccounts, loading, onView, onUpdate, onR
     onRefresh?.()
   }
 
-  const handleDeleteAccount = async (accountNumber: string, bankName: string) => {
+  const handleDeleteAccount = async (account: BankAccount, bankName: string) => {
+    const accountNumber = account.bank_account_number || account.account_number || '';
     confirmDialog.open({
       title: 'Delete Bank Account',
       description: `Are you sure you want to delete the account "${accountNumber}" for "${bankName}"? This action cannot be undone.`,
@@ -114,9 +115,11 @@ export function BankAccountsTable({ bankAccounts, loading, onView, onUpdate, onR
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="font-mono text-sm font-medium">{row.getValue('bank_account_number')}</div>
-      )
+      cell: ({ row }) => {
+        const account = row.original;
+        const accountNumber = account.bank_account_number || account.account_number || '';
+        return <div className="font-mono text-sm font-medium">{accountNumber}</div>
+      }
     },
     {
       accessorKey: 'created_at',
@@ -151,7 +154,7 @@ export function BankAccountsTable({ bankAccounts, loading, onView, onUpdate, onR
             <DropdownMenuContent align="end" className="glass-card border-0">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem 
-                onClick={() => navigator.clipboard.writeText(account.bank_account_number)}
+                onClick={() => navigator.clipboard.writeText(account.bank_account_number || account.account_number || '')}
                 className="hover:bg-muted/50 focus:bg-muted/50 hover:text-foreground focus:text-foreground"
               >
                 Copy Account Number
@@ -171,7 +174,7 @@ export function BankAccountsTable({ bankAccounts, loading, onView, onUpdate, onR
                 View/Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDeleteAccount(account.bank_account_number, account.bank_name)}
+                onClick={() => handleDeleteAccount(account, account.bank_name)}
                 className="flex items-center gap-2 text-red-600 hover:text-red-600 focus:text-red-600 hover:bg-red-50/50 focus:bg-red-50/50"
               >
                 <Trash2 className="h-4 w-4" />
@@ -201,7 +204,7 @@ export function BankAccountsTable({ bankAccounts, loading, onView, onUpdate, onR
         <DataTable
           columns={columns}
           data={bankAccounts}
-          searchKey="bank_account_number"
+          searchKey="bank_name"
           searchPlaceholder="Search by account number or bank name..."
           showColumnToggle={true}
           showPagination={true}

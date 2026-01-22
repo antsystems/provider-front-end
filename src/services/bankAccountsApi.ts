@@ -6,6 +6,8 @@ import {
   UpdateBankAccountRequest,
   UpdateBankAccountResponse,
   DeleteBankAccountResponse,
+  ValidateIFSCRequest,
+  ValidateIFSCResponse,
 } from '@/types/bankAccounts';
 import authService from '@/services/auth';
 import { getCached, setCached, clearCache } from '@/services/cache';
@@ -26,7 +28,33 @@ class BankAccountsApiService {
   }
 
   /**
-   * Get available banks
+   * Validate IFSC code and get bank details
+   */
+  async validateIFSC(ifscCode: string): Promise<ValidateIFSCResponse> {
+    const url = `${this.baseUrl}/bank-accounts/validate-ifsc`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ ifsc_code: ifscCode }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data: ValidateIFSCResponse = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Failed to validate IFSC code:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get available banks (deprecated - use IFSC validation instead)
    */
   async getAvailableBanks(useCache = true): Promise<AvailableBanksResponse> {
     const cacheKey = 'available-banks';
@@ -89,6 +117,15 @@ class BankAccountsApiService {
       }
 
       const data: BankAccountsResponse = await response.json();
+      
+      // Normalize account_number to bank_account_number for consistency
+      if (data.bank_accounts) {
+        data.bank_accounts = data.bank_accounts.map(account => ({
+          ...account,
+          bank_account_number: account.account_number || account.bank_account_number || '',
+        }));
+      }
+      
       return data;
     } catch (error) {
       console.error('Failed to fetch bank accounts:', error);

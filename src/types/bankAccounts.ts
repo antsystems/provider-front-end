@@ -5,12 +5,17 @@ export interface Bank {
 }
 
 export interface BankAccount {
-  bank_id: string;
+  bank_id?: string;
   bank_name: string;
-  bank_account_number: string;
+  account_number: string; // API returns this as account_number
+  bank_account_number?: string; // Alias for account_number for backward compatibility
   ifsc_code?: string;
   branch?: string;
-  remarks?: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  state?: string;
+  bank_code?: string;
   hospital_id?: string; // Hospital-specific - backend filters by authenticated user's hospital
   created_at?: string;
   created_by?: string;
@@ -36,12 +41,26 @@ export interface BankAccountsResponse {
   count: number;
 }
 
-export interface CreateBankAccountRequest {
-  bank_id: string;
-  bank_account_number: string;
-  ifsc_code?: string;
+export interface ValidateIFSCRequest {
+  ifsc_code: string;
+}
+
+export interface ValidateIFSCResponse {
+  valid: boolean;
+  bank_name?: string;
   branch?: string;
-  remarks?: string;
+  ifsc?: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  state?: string;
+  error?: string;
+}
+
+export interface CreateBankAccountRequest {
+  bank_name: string; // From dropdown
+  bank_account_number: string; // User enters
+  ifsc_code: string; // User enters
 }
 
 export interface CreateBankAccountResponse {
@@ -50,10 +69,9 @@ export interface CreateBankAccountResponse {
 }
 
 export interface UpdateBankAccountRequest {
-  bank_account_number: string;
-  ifsc_code?: string;
-  branch?: string;
-  remarks?: string;
+  bank_name: string; // From dropdown
+  bank_account_number: string; // User enters
+  ifsc_code: string; // User enters
 }
 
 export interface UpdateBankAccountResponse {
