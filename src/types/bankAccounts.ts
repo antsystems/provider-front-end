@@ -8,6 +8,9 @@ export interface BankAccount {
   bank_id: string;
   bank_name: string;
   bank_account_number: string;
+  ifsc_code?: string;
+  branch?: string;
+  remarks?: string;
   created_at?: string;
   created_by?: string;
   created_by_email?: string;
@@ -35,6 +38,9 @@ export interface BankAccountsResponse {
 export interface CreateBankAccountRequest {
   bank_id: string;
   bank_account_number: string;
+  ifsc_code?: string;
+  branch?: string;
+  remarks?: string;
 }
 
 export interface CreateBankAccountResponse {
@@ -44,6 +50,9 @@ export interface CreateBankAccountResponse {
 
 export interface UpdateBankAccountRequest {
   bank_account_number: string;
+  ifsc_code?: string;
+  branch?: string;
+  remarks?: string;
 }
 
 export interface UpdateBankAccountResponse {

@@ -46,6 +46,9 @@ import { cn } from '@/lib/utils'
 const formSchema = z.object({
   bank_id: z.string().min(1, 'Please select a bank'),
   bank_account_number: z.string().min(1, 'Account number is required').regex(/^\d+$/, 'Account number must contain only digits'),
+  ifsc_code: z.string().optional(),
+  branch: z.string().optional(),
+  remarks: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -71,6 +74,9 @@ export default function AddBankAccountDialog({
     defaultValues: {
       bank_id: '',
       bank_account_number: '',
+      ifsc_code: '',
+      branch: '',
+      remarks: '',
     },
   })
 
@@ -107,6 +113,9 @@ export default function AddBankAccountDialog({
       const accountData: CreateBankAccountRequest = {
         bank_id: data.bank_id,
         bank_account_number: data.bank_account_number,
+        ifsc_code: data.ifsc_code?.trim() || undefined,
+        branch: data.branch?.trim() || undefined,
+        remarks: data.remarks?.trim() || undefined,
       }
 
       const response = await bankAccountsApi.createBankAccount(accountData)
@@ -246,6 +255,60 @@ export default function AddBankAccountDialog({
                   <FormControl>
                     <Input
                       placeholder="Enter account number (digits only)"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="ifsc_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>IFSC Code</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter IFSC code (optional)"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="branch"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Branch</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter branch name (optional)"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="remarks"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Remarks</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter any remarks (optional)"
                       {...field}
                       disabled={isLoading}
                     />
